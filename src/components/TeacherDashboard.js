@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './Header';
 import Footer from './Footer';
 import './styles/Dashboard.css';
@@ -30,14 +30,20 @@ const TeacherDashboard = () => {
 
   ];
 
+  useEffect(() => {
+    document.title = "Teacher";
+  }, []);
+
 
   const fetchStudents = (selectedClass) => {
+
 
     setStudents(sampleStudentsData);
   };
 
 
   const handleClassSelect = (e) => {
+
     const selectedClass = e.target.value;
     setSelectedClass(selectedClass);
     fetchStudents(selectedClass);
@@ -45,6 +51,7 @@ const TeacherDashboard = () => {
 
 
   const viewCertificate = (studentId) => {
+
 
     console.log(`View certificate for student with id: ${studentId}`);
   };

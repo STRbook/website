@@ -1,8 +1,9 @@
 // src/components/StudentDashboard.js
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './Header';
 import Footer from './Footer';
+
 import './styles/Dashboard.css';
 
 const semesters = [
@@ -24,6 +25,9 @@ const handleFileChange = (file) => {
 
 
 const StudentDashboard = () => {
+  useEffect(() => {
+    document.title = "Student"; // Change this to the desired title
+  }, []);
 
   const [moocCertificates, setMoocCertificates] = useState([
     {
@@ -118,15 +122,15 @@ const StudentDashboard = () => {
             <input type="text" name="hoursPerWeek" value={formData.hoursPerWeek} onChange={handleChange} />
           </label>
           <div>
-        <label htmlFor="certificate">Upload Certificate (PDF, JPEG, JPG, PNG):</label>
-        <input 
-          type="file" 
-          id="certificate" 
-          name="certificate" 
-          accept=".pdf,.jpeg,.jpg,.png" 
-          onChange={(e) => handleFileChange(e.target.files[0])} 
-        />
-      </div>
+            <label htmlFor="certificate">Upload Certificate (PDF, JPEG, JPG, PNG):</label>
+            <input
+              type="file"
+              id="certificate"
+              name="certificate"
+              accept=".pdf,.jpeg,.jpg,.png"
+              onChange={(e) => handleFileChange(e.target.files[0])}
+            />
+          </div>
           <div className="form-actions">
             <button type="submit">Add Certificate</button>
           </div>
