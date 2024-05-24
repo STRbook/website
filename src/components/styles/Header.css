@@ -1,0 +1,57 @@
+* {
+  box-sizing: border-box;
+}
+
+body,
+html {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  /* no horizontal scrolling */
+}
+
+.header {
+  background-color: #5a5e62;
+  color: white;
+  padding: 10px 5%;
+  /*  prevent overflow */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  height: 40px;
+  margin-right: 10px;
+}
+
+.header h1 {
+  margin: 0;
+}
+
+.header nav ul {
+  list-style: none;
+  display: flex;
+  margin: 0;
+  padding: 0;
+}
+
+.header nav ul li {
+  margin-left: 20px;
+  
+}
+
+.header nav ul li a {
+  color: white;
+  text-decoration: none;
+}
+
+.header nav ul li a:hover {
+  text-decoration: underline;
+}

@@ -1,0 +1,108 @@
+/* src/components/Login.css */
+
+
+.login-background {
+    display: flex;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    background-image: url('../assets/bg.png');
+    background-size: cover;
+    background-position: center;
+}
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+}
+
+.form-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 50px;
+    background-color: rgba(42, 41, 41, 0.9);
+    margin: 75px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 325px;
+    height: 400px;
+
+
+}
+
+.form-container h2 {
+    margin-bottom: 20px;
+    color: #fff;
+}
+
+.form-container input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.form-container button {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.form-container button:hover {
+    background-color: #0056b3;
+}
+
+.password-container {
+    position: relative;
+    width: 100%;
+}
+
+.password-container input {
+    width: 100%;
+    padding-right: 0px;
+    padding-left: 0px;
+}
+
+.toggle-icon {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    cursor: pointer;
+}
+
+
+
+.spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-left-color: #007bff;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.error {
+    color: red;
+    margin-bottom: 10px;
+}
