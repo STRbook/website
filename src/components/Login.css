@@ -30,7 +30,7 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     width: 325px;
     height: 400px;
-
+   
 
 }
 
@@ -96,7 +96,6 @@
     0% {
         transform: rotate(0deg);
     }
-
     100% {
         transform: rotate(360deg);
     }

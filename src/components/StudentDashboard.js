@@ -16,6 +16,11 @@ const semesters = [
   'Semester 8'
 ];
 
+const handleFileChange = (file) => {
+  // upload
+  console.log("Selected file:", file);
+};
+
 
 
 const StudentDashboard = () => {
@@ -112,6 +117,16 @@ const StudentDashboard = () => {
             Hours Per Week:
             <input type="text" name="hoursPerWeek" value={formData.hoursPerWeek} onChange={handleChange} />
           </label>
+          <div>
+        <label htmlFor="certificate">Upload Certificate (PDF, JPEG, JPG, PNG):</label>
+        <input 
+          type="file" 
+          id="certificate" 
+          name="certificate" 
+          accept=".pdf,.jpeg,.jpg,.png" 
+          onChange={(e) => handleFileChange(e.target.files[0])} 
+        />
+      </div>
           <div className="form-actions">
             <button type="submit">Add Certificate</button>
           </div>
