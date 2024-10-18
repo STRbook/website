@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import './Register.css'; // Add your styles
 
 const Register = () => {
@@ -13,7 +14,7 @@ const Register = () => {
     const [error, setError] = useState('');
     const navigate = useNavigate();
 
-    const handleRegister = () => {
+    const handleRegister = async () => {
         if (!email || !password || !confirmPassword) {
             setError('All fields are required');
             return;
@@ -24,13 +25,18 @@ const Register = () => {
         }
         setError('');
 
-        // TODO: Send registration request to your backend API here
-
-        // Simulating a successful registration
-        setTimeout(() => {
-            console.log('Registered with:', email, password);
-            navigate('/login'); // Redirect to login after registration
-        }, 1500);
+        try {
+            // Send registration request to your backend API
+            const response = await axios.post('http://localhost:5000/api/register', {
+                email,
+                password,
+            });
+            console.log('Registered:', response.data);
+            navigate('/login'); // Redirect to login after successful registration
+        } catch (error) {
+            setError(error.response?.data?.message || 'Registration failed');
+            console.error('Error registering:', error);
+        }
     };
 
     return (
