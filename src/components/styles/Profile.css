@@ -1,0 +1,92 @@
+.profile-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+
+.profile-content {
+    flex: 1;
+
+    padding: 30px;
+    max-width: 1200px;
+    
+}
+
+.profile-sections {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+.profile-sections {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: space-between;
+}
+
+.profile-content section {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    flex-basis: calc(50% - 10px);
+  }
+
+.profile-content h3 {
+    color: #007bff;
+    margin-bottom: 15px;
+}
+
+.profile-content p {
+    margin-bottom: 10px;
+}
+
+.profile-content strong {
+    font-weight: 600;
+    color: #495057;
+}
+
+.academics-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.academics-table th,
+.academics-table td {
+    border: 1px solid #dee2e6;
+    padding: 10px;
+    text-align: left;
+}
+
+.academics-table th {
+    background-color: #e9ecef;
+    font-weight: 600;
+}
+
+.academics-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.hobbies-info ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.hobbies-info li {
+    margin-bottom: 5px;
+}
+
+@media (max-width: 768px) {
+    .profile-content {
+      padding: 20px;
+    }
+  
+    .profile-content section {
+      flex-basis: 100%;
+    }
+  }

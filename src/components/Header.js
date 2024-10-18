@@ -7,12 +7,13 @@ const Header = ({ userType }) => {
     <header className="header">
       <div className="logo-container">
         <img src={logo} alt="Logo" className="logo" />
-      <h1>Mooc Management</h1>
+      <h1>STRbook</h1>
       </div>
       <nav>
         <ul>
           {userType === 'teacher' && <li><a href="/teacher-dashboard">TeacherName</a></li>}
           {userType === 'student' && <li><a href="/student-dashboard">StudentName</a></li>}
+          {userType === 'student' && <li><a href="/student-profile">Profile</a></li>}
           <li><a href="/logout">Logout</a></li>
         </ul>
       </nav>
