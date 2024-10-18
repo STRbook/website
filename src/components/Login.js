@@ -80,6 +80,9 @@ const Login = () => {
                         <p>
                             <a href="/forgot-password">Forgot Password?</a>
                         </p>
+                        <p>
+                            Don't have an account? <a href="/register">Register</a>
+                        </p>
                     </>
                 )}
             </div>
