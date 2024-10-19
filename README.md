@@ -1,70 +1,103 @@
-# Getting Started with Create React App
+# STRbook - Student Transformation Record book
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Web app to replace physical str book.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+- User authentication (Login/Register)
+- Student Dashboard
+  - Add MOOC certificates
+  - View previous MOOC certificates
+- Teacher Dashboard
+  - View students' MOOC certificates
+  - Score certificates
+- Student Profile
+  - View and manage personal information
 
-### `npm start`
+## Technologies Used
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- Frontend: React.js
+- Backend: Node.js with Express.js
+- Database: PostgreSQL
+- Authentication: JSON Web Tokens (JWT)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Getting Started
 
-### `npm test`
+### Prerequisites
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- Node.js (v14 or later)
+- npm (v6 or later)
+- PostgreSQL
 
-### `npm run build`
+### Installation
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+1. Clone the repository:
+   ```
+   git clone https://github.com/yourusername/strbook.git
+   cd strbook
+   ```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+2. Install dependencies for both frontend and backend:
+   ```
+   npm install
+   cd backend
+   npm install
+   ```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+3. Set up the database:
+   - Create a PostgreSQL database named `str_book`
+   - Update the database connection details in `backend/index.js`:
 
-### `npm run eject`
+   ```javascript
+   const pool = new Pool({
+     user: 'postgres',       // Your PostgreSQL username
+     host: 'localhost',      // Hostname
+     database: 'str_book',   // Your database name
+     password: 'pg',         // Your PostgreSQL password
+     port: 5432,             // PostgreSQL port
+   });
+   ```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+4. Start the backend server:
+   ```
+   cd backend
+   node index.js
+   ```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+5. Start the frontend development server:
+   ```
+   cd ..
+   npm start
+   ```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+6. Open your browser and navigate to `http://localhost:3000`
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## Usage
 
-## Learn More
+### Student
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+1. Register a new account or log in
+2. Navigate to the dashboard to add new MOOC certificates
+3. View your profile and previous certificates
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Teacher
 
-### Code Splitting
+1. Log in with teacher credentials
+2. Select a class to view students' MOOC certificates
+3. Review and score the certificates
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## Contributing
 
-### Analyzing the Bundle Size
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## License
 
-### Making a Progressive Web App
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
 
-### Advanced Configuration
+## Acknowledgements
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- [Create React App](https://github.com/facebook/create-react-app)
+- [Express.js](https://expressjs.com/)
+- [PostgreSQL](https://www.postgresql.org/)
+- [bcrypt](https://github.com/kelektiv/node.bcrypt.js)
+- [JSON Web Tokens](https://jwt.io/)
