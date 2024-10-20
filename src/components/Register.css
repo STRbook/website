@@ -68,3 +68,7 @@
     color: red;
     margin-bottom: 10px;
 }
+.success {
+    color: green;
+    margin: 10px 0;
+}

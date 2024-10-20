@@ -13,6 +13,7 @@ const Register = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
     const navigate = useNavigate();
+    const [successMessage, setSuccessMessage] = useState('');
 
     const handleRegister = async () => {
         if (!email || !password || !confirmPassword) {
@@ -26,13 +27,17 @@ const Register = () => {
         setError('');
 
         try {
-            // Send registration request to your backend API
+            // Send registration request
             const response = await axios.post('http://localhost:5000/api/register', {
                 email,
                 password,
             });
             console.log('Registered:', response.data);
-            navigate('/login'); // Redirect to login after successful registration
+            setSuccessMessage('Registration successful! Redirecting to login...');
+            setTimeout(() => {
+                navigate('/login');
+            }, 2000);
+             
         } catch (error) {
             setError(error.response?.data?.message || 'Registration failed');
             console.error('Error registering:', error);
@@ -44,6 +49,8 @@ const Register = () => {
             <div className="form-container">
                 <h2>Create Account</h2>
                 {error && <p className="error">{error}</p>}
+                
+
                 <input
                     type="email"
                     placeholder="Email"
@@ -65,7 +72,9 @@ const Register = () => {
                 <button onClick={handleRegister}>Register</button>
                 <p>
                     Already have an account? <a href="/login">Login</a>
+
                 </p>
+                {successMessage && <p className="success">{successMessage}</p>}
             </div>
         </div>
     );
