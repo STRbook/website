@@ -33,7 +33,7 @@ Web app to replace physical str book.
 
 1. Clone the repository:
    ```
-   git clone https://github.com/yourusername/strbook.git
+   git clone https://github.com/sajalkmr/strbook.git
    cd strbook
    ```
 
