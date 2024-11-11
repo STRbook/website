@@ -18,8 +18,12 @@ const semesters = [
 ];
 
 const handleFileChange = (file) => {
-  // upload
-  console.log("Selected file:", file);
+  if (file) {
+    const formData = new FormData();
+    formData.append('certificate', file);
+    // use axios
+    console.log("Uploading file:", file.name);
+  }
 };
 
 

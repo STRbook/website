@@ -20,6 +20,12 @@ const Register = () => {
             setError('All fields are required');
             return;
         }
+        if (password.length < 6) {
+            setError('Password must be at least 6 characters long');
+            return;
+        }
+
+
         if (password !== confirmPassword) {
             setError('Passwords do not match');
             return;
@@ -37,7 +43,7 @@ const Register = () => {
             setTimeout(() => {
                 navigate('/login');
             }, 2000);
-             
+
         } catch (error) {
             setError(error.response?.data?.message || 'Registration failed');
             console.error('Error registering:', error);
@@ -49,7 +55,7 @@ const Register = () => {
             <div className="form-container">
                 <h2>Create Account</h2>
                 {error && <p className="error">{error}</p>}
-                
+
 
                 <input
                     type="email"
