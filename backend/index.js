@@ -11,10 +11,10 @@ app.use(bodyParser.json());
 
 // Connect to PostgreSQL
 const pool = new Pool({
-  user: 'postgres',       // Your PostgreSQL username
+  user: 'postgres',       //  PostgreSQL username
   host: 'localhost',      // Hostname
-  database: 'str_book',   // Your database name
-  password: 'pg',         // Your PostgreSQL password
+  database: 'str_book',   //  database name
+  password: 'pg',         //  PostgreSQL password
   port: 5432,             // PostgreSQL port
 });
 
@@ -98,7 +98,24 @@ app.post('/api/login', async (req, res) => {
   try {
     const user = await pool.query('SELECT * FROM student_profile WHERE email = $1', [email]);
     if (user.rows.length === 0) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+      // Check if it's a teacher
+      const teacher = await pool.query('SELECT * FROM teacher_profile WHERE email = $1', [email]);
+      if (teacher.rows.length === 0) {
+        return res.status(400).json({ message: 'Invalid credentials' });
+      }
+      
+      const isMatch = await bcrypt.compare(password, teacher.rows[0].password);
+      if (!isMatch) {
+        return res.status(400).json({ message: 'Invalid credentials' });
+      }
+
+      const token = jwt.sign(
+        { id: teacher.rows[0].id, email: teacher.rows[0].email, type: 'teacher' },
+        'jwt_secret',
+        { expiresIn: '1h' }
+      );
+
+      return res.json({ token, userType: 'teacher', isProfileComplete: true });
     }
 
     const isMatch = await bcrypt.compare(password, user.rows[0].password);
@@ -106,10 +123,21 @@ app.post('/api/login', async (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // Generate JWT
-    const token = jwt.sign({ id: user.rows[0].id, email: user.rows[0].email }, 'jwt_secret', { expiresIn: '1h' });
+    // Check if student profile is complete
+    const isProfileComplete = user.rows[0].name && 
+                            user.rows[0].usn && 
+                            user.rows[0].gender && 
+                            user.rows[0].nationality && 
+                            user.rows[0].phone;
 
-    res.json({ token });
+    // Generate JWT
+    const token = jwt.sign(
+      { id: user.rows[0].id, email: user.rows[0].email, type: 'student' },
+      'jwt_secret',
+      { expiresIn: '1h' }
+    );
+
+    res.json({ token, userType: 'student', isProfileComplete });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
@@ -127,6 +155,163 @@ const authenticateToken = (req, res, next) => {
     next();
   });
 };
+
+// Get student profile
+app.get('/api/student/profile', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const result = await pool.query(
+      'SELECT name, usn, email, gender, nationality, phone, dob, religion, hobbies, profile_picture_url FROM student_profile WHERE id = $1',
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Profile not found' });
+    }
+
+    const profile = result.rows[0];
+    res.json({
+      personalInfo: {
+        name: profile.name || '',
+        usn: profile.usn || '',
+        gender: profile.gender || '',
+        nationality: profile.nationality || '',
+        phone: profile.phone || '',
+        email: profile.email || '',
+        dob: profile.dob || '',
+        religion: profile.religion || '',
+        hobbies: profile.hobbies || '',
+        profilePicture: profile.profile_picture_url || null
+      }
+    });
+  } catch (err) {
+    console.error('Error fetching profile:', err);
+    res.status(500).json({ message: 'Server error while fetching profile' });
+  }
+});
+
+// Update student profile
+app.post('/api/student/profile', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { personalInfo } = req.body;
+
+    console.log('Received profile update request:', {
+      userId,
+      personalInfo
+    });
+
+    // Validate required fields
+    const required = ['name', 'usn', 'gender', 'nationality', 'phone', 'religion'];
+    const missing = required.filter(field => !personalInfo[field]);
+    
+    if (missing.length > 0) {
+      console.log('Missing required fields:', missing);
+      return res.status(400).json({ 
+        message: `Missing required fields: ${missing.join(', ')}` 
+      });
+    }
+
+    // Check if the email exists (if provided)
+    if (personalInfo.email) {
+      const emailCheck = await pool.query(
+        'SELECT id FROM student_profile WHERE email = $1 AND id != $2',
+        [personalInfo.email, userId]
+      );
+      if (emailCheck.rows.length > 0) {
+        return res.status(400).json({ message: 'Email already exists' });
+      }
+    }
+
+    // Check if the USN exists
+    const usnCheck = await pool.query(
+      'SELECT id FROM student_profile WHERE usn = $1 AND id != $2',
+      [personalInfo.usn, userId]
+    );
+    if (usnCheck.rows.length > 0) {
+      return res.status(400).json({ message: 'USN already exists' });
+    }
+
+    // First, check if the profile exists
+    const existingProfile = await pool.query(
+      'SELECT id FROM student_profile WHERE id = $1',
+      [userId]
+    );
+
+    let result;
+    const values = [
+      personalInfo.name,
+      personalInfo.usn,
+      personalInfo.gender,
+      personalInfo.nationality,
+      personalInfo.phone,
+      personalInfo.email || null,
+      personalInfo.dob || null,
+      personalInfo.religion,
+      personalInfo.hobbies || null,
+      personalInfo.profilePicture || null
+    ];
+
+    if (existingProfile.rows.length === 0) {
+      // Insert new profile
+      const insertQuery = `
+        INSERT INTO student_profile 
+        (id, name, usn, gender, nationality, phone, email, dob, religion, hobbies, profile_picture_url, created_at, updated_at)
+        VALUES ($11, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        RETURNING *
+      `;
+      values.push(userId);
+      result = await pool.query(insertQuery, values);
+      console.log('Inserted new profile');
+    } else {
+      // Update existing profile
+      const updateQuery = `
+        UPDATE student_profile 
+        SET name = $1, usn = $2, gender = $3, nationality = $4, 
+            phone = $5, email = $6, dob = $7, religion = $8,
+            hobbies = $9, profile_picture_url = $10,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = $11
+        RETURNING *
+      `;
+      values.push(userId);
+      result = await pool.query(updateQuery, values);
+      console.log('Updated existing profile');
+    }
+
+    if (result.rows.length === 0) {
+      console.error('No rows returned after profile update');
+      return res.status(500).json({ message: 'Failed to update profile' });
+    }
+
+    console.log('Profile updated successfully');
+    res.json({ 
+      message: 'Profile updated successfully',
+      isProfileComplete: true
+    });
+  } catch (err) {
+    console.error('Profile update error:', err);
+    if (err.constraint === 'student_profile_usn_key') {
+      return res.status(400).json({ message: 'USN already exists' });
+    }
+    if (err.constraint === 'student_profile_email_key') {
+      return res.status(400).json({ message: 'Email already exists' });
+    }
+    res.status(500).json({ 
+      message: 'Server error while updating profile',
+      error: err.message 
+    });
+  }
+});
+
+const fileRoutes = require('./routes/fileRoutes');
+const { setupDevFileServing } = require('./controllers/fileController');
+
+// Set up file serving for development
+setupDevFileServing(app);
+
+// Add file routes
+app.use('/api/files', fileRoutes);
 
 // Example protected route
 app.get('/api/student-profile', authenticateToken, (req, res) => {

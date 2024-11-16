@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { Icon } from 'react-icons-kit';
 import { eyeOff } from 'react-icons-kit/feather/eyeOff';
 import { eye } from 'react-icons-kit/feather/eye';
+import axios from 'axios'; 
 
 import './Login.css';
 
 const Login = () => {
     useEffect(() => {
-        document.title = "Login"; // Change this to the desired title
+        document.title = "Login"; 
     }, []);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -18,7 +19,7 @@ const Login = () => {
     const [icon, setIcon] = useState(eyeOff);
     const navigate = useNavigate();
 
-    const handleLogin = () => {
+    const handleLogin = async () => {
         if (!username || !password) {
             setError('Username and Password are required');
             return;
@@ -26,18 +27,30 @@ const Login = () => {
         setError('');
         setLoading(true);
 
-        setTimeout(() => {
-            setLoading(false);
-            console.log('Logged in with:', username, password);
+        try {
+            const response = await axios.post('http://localhost:5000/api/login', {
+                email: username,
+                password
+            });
 
-            if (username === 'student') {
+            const { token, isProfileComplete, userType } = response.data;
+            
+            // Store the token
+            localStorage.setItem('token', token);
+            localStorage.setItem('userType', userType);
+
+            if (userType === 'student' && !isProfileComplete) {
+                navigate('/student-profile');
+            } else if (userType === 'student') {
                 navigate('/student-dashboard');
-            } else if (username === 'teacher') {
+            } else if (userType === 'teacher') {
                 navigate('/teacher-dashboard');
-            } else {
-                setError('Invalid credentials');
             }
-        }, 1500);
+        } catch (error) {
+            setError(error.response?.data?.message || 'Invalid credentials');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleToggle = () => {
