@@ -1,143 +1,409 @@
 // src/components/StudentProfile.js
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
-import './styles/Profile.css'; // Add styling here or reuse Dashboard CSS
+import './styles/Profile.css';
 
 const StudentProfile = () => {
-  useEffect(() => {
-    document.title = "Student Profile";
-  }, []);
+  const navigate = useNavigate();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  // Placeholder state, this would eventually come from your backend/database.
-  const [studentInfo, setStudentInfo] = useState({
-    personalInfo: {
-      name: 'John Doe',
-      usn: '1CR22IS101',
-      dob: '2001-05-12',
-      phone: '9876543210',
-      email: 'johndoe@example.com',
+  // Form data state
+  const [formData, setFormData] = useState({
+    // Student Profile
+    first_name: '',
+    last_name: '',
+    usn: '',
+    dob: '',
+    phone: '',
+
+    // Parent Info
+    father_name: '',
+    mother_name: '',
+    parent_contact: '',
+    parent_email: '',
+
+    // Addresses
+    permanent_address: {
+      street: '',
+      city: '',
+      state: '',
+      zip_code: '',
+      country: ''
     },
-    parentInfo: {
-      fatherName: 'Mr. Doe',
-      motherName: 'Mrs. Doe',
-      contact: '9876543210',
-      email: 'parentdoe@example.com'
+    temporary_address: {
+      street: '',
+      city: '',
+      state: '',
+      zip_code: '',
+      country: ''
     },
-    address: {
-      permanent: {
-        street: '123 Main St',
-        city: 'New York',
-        zip_code: '10001',
-        state: 'NY',
-        country: 'USA',
-      },
-      temporary: {
-        street: '45 Oak St',
-        city: 'New York',
-        zip_code: '10002',
-        state: 'NY',
-        country: 'USA',
-      },
-    },
-    academics: [
-      { semester: 'Semester 1', gpa: 8.5 },
-      { semester: 'Semester 2', gpa: 9.0 },
+
+    // Academic Records
+    academic_records: [
+      { semester: 'Semester 1', gpa: '' },
+      { semester: 'Semester 2', gpa: '' },
+      { semester: 'Semester 3', gpa: '' },
+      { semester: 'Semester 4', gpa: '' }
     ],
-    siblingInfo: [
-      { siblingName: 'Jane Doe', relationship: 'Sister' },
-    ],
-    hobbies: ['Reading', 'Coding', 'Basketball']
+
+    // Sibling Info
+    siblings: [{ sibling_name: '', relationship: '' }],
+
+    // Hobbies
+    hobbies: ['']
   });
 
-  // Once integrated, you'd fetch data from your backend and set it here.
-  useEffect(() => {
-    // Example: fetch data from API
-    // fetch('api/student-profile').then(response => response.json()).then(data => setStudentInfo(data));
-  }, []);
+  const handleInputChange = (section, field, value, index = null) => {
+    setFormData(prev => {
+      const newData = { ...prev };
+      
+      if (index !== null) {
+        // Handle array fields (academic_records, siblings, hobbies)
+        if (section === 'academic_records') {
+          newData.academic_records[index].gpa = value;
+        } else if (section === 'siblings') {
+          if (!newData.siblings[index]) {
+            newData.siblings[index] = {};
+          }
+          newData.siblings[index][field] = value;
+        } else if (section === 'hobbies') {
+          newData.hobbies[index] = value;
+        }
+      } else if (section === 'address') {
+        // Handle nested address objects
+        newData[field] = { ...prev[field], ...value };
+      } else {
+        // Handle flat fields
+        newData[field] = value;
+      }
+      
+      return newData;
+    });
+  };
+
+  const addArrayField = (field) => {
+    setFormData(prev => {
+      const newData = { ...prev };
+      if (field === 'siblings') {
+        newData.siblings.push({ sibling_name: '', relationship: '' });
+      } else if (field === 'hobbies') {
+        newData.hobbies.push('');
+      }
+      return newData;
+    });
+  };
+
+  const removeArrayField = (field, index) => {
+    setFormData(prev => {
+      const newData = { ...prev };
+      if (field === 'siblings' || field === 'hobbies') {
+        newData[field].splice(index, 1);
+      }
+      return newData;
+    });
+  };
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      const studentId = localStorage.getItem('studentId');
+      const token = localStorage.getItem('token');
+
+      const response = await fetch('http://localhost:5000/api/student-profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          studentId,
+          ...formData
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to save profile');
+      }
+
+      // Redirect to dashboard after successful profile completion
+      navigate('/student-dashboard');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderStep = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <div className="form-step">
+            <h3>Personal Information</h3>
+            <input
+              type="text"
+              placeholder="First Name"
+              value={formData.first_name}
+              onChange={(e) => handleInputChange('profile', 'first_name', e.target.value)}
+            />
+            <input
+              type="text"
+              placeholder="Last Name"
+              value={formData.last_name}
+              onChange={(e) => handleInputChange('profile', 'last_name', e.target.value)}
+            />
+            <input
+              type="text"
+              placeholder="USN"
+              value={formData.usn}
+              onChange={(e) => handleInputChange('profile', 'usn', e.target.value)}
+            />
+            <input
+              type="date"
+              placeholder="Date of Birth"
+              value={formData.dob}
+              onChange={(e) => handleInputChange('profile', 'dob', e.target.value)}
+            />
+            <input
+              type="tel"
+              placeholder="Phone Number"
+              value={formData.phone}
+              onChange={(e) => handleInputChange('profile', 'phone', e.target.value)}
+            />
+          </div>
+        );
+
+      case 2:
+        return (
+          <div className="form-step">
+            <h3>Parent Information</h3>
+            <input
+              type="text"
+              placeholder="Father's Name"
+              value={formData.father_name}
+              onChange={(e) => handleInputChange('parent', 'father_name', e.target.value)}
+            />
+            <input
+              type="text"
+              placeholder="Mother's Name"
+              value={formData.mother_name}
+              onChange={(e) => handleInputChange('parent', 'mother_name', e.target.value)}
+            />
+            <input
+              type="tel"
+              placeholder="Parent Contact"
+              value={formData.parent_contact}
+              onChange={(e) => handleInputChange('parent', 'parent_contact', e.target.value)}
+            />
+            <input
+              type="email"
+              placeholder="Parent Email"
+              value={formData.parent_email}
+              onChange={(e) => handleInputChange('parent', 'parent_email', e.target.value)}
+            />
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="form-step">
+            <h3>Address Information</h3>
+            <div className="address-section">
+              <h4>Permanent Address</h4>
+              <input
+                type="text"
+                placeholder="Street"
+                value={formData.permanent_address.street}
+                onChange={(e) => handleInputChange('address', 'permanent_address', { street: e.target.value })}
+              />
+              <input
+                type="text"
+                placeholder="City"
+                value={formData.permanent_address.city}
+                onChange={(e) => handleInputChange('address', 'permanent_address', { city: e.target.value })}
+              />
+              <input
+                type="text"
+                placeholder="State"
+                value={formData.permanent_address.state}
+                onChange={(e) => handleInputChange('address', 'permanent_address', { state: e.target.value })}
+              />
+              <input
+                type="text"
+                placeholder="ZIP Code"
+                value={formData.permanent_address.zip_code}
+                onChange={(e) => handleInputChange('address', 'permanent_address', { zip_code: e.target.value })}
+              />
+              <input
+                type="text"
+                placeholder="Country"
+                value={formData.permanent_address.country}
+                onChange={(e) => handleInputChange('address', 'permanent_address', { country: e.target.value })}
+              />
+            </div>
+
+            <div className="address-section">
+              <h4>Temporary Address</h4>
+              <input
+                type="text"
+                placeholder="Street"
+                value={formData.temporary_address.street}
+                onChange={(e) => handleInputChange('address', 'temporary_address', { street: e.target.value })}
+              />
+              <input
+                type="text"
+                placeholder="City"
+                value={formData.temporary_address.city}
+                onChange={(e) => handleInputChange('address', 'temporary_address', { city: e.target.value })}
+              />
+              <input
+                type="text"
+                placeholder="State"
+                value={formData.temporary_address.state}
+                onChange={(e) => handleInputChange('address', 'temporary_address', { state: e.target.value })}
+              />
+              <input
+                type="text"
+                placeholder="ZIP Code"
+                value={formData.temporary_address.zip_code}
+                onChange={(e) => handleInputChange('address', 'temporary_address', { zip_code: e.target.value })}
+              />
+              <input
+                type="text"
+                placeholder="Country"
+                value={formData.temporary_address.country}
+                onChange={(e) => handleInputChange('address', 'temporary_address', { country: e.target.value })}
+              />
+            </div>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="form-step">
+            <h3>Academic Records</h3>
+            {formData.academic_records.map((record, index) => (
+              <div key={index} className="academic-record">
+                <span>{record.semester}</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="10"
+                  placeholder="GPA"
+                  value={record.gpa}
+                  onChange={(e) => handleInputChange('academic_records', 'gpa', e.target.value, index)}
+                />
+              </div>
+            ))}
+          </div>
+        );
+
+      case 5:
+        return (
+          <div className="form-step">
+            <h3>Sibling Information</h3>
+            {formData.siblings.map((sibling, index) => (
+              <div key={index} className="sibling-info">
+                <input
+                  type="text"
+                  placeholder="Sibling Name"
+                  value={sibling.sibling_name}
+                  onChange={(e) => handleInputChange('siblings', 'sibling_name', e.target.value, index)}
+                />
+                <input
+                  type="text"
+                  placeholder="Relationship"
+                  value={sibling.relationship}
+                  onChange={(e) => handleInputChange('siblings', 'relationship', e.target.value, index)}
+                />
+                {index > 0 && (
+                  <button type="button" onClick={() => removeArrayField('siblings', index)}>
+                    Remove
+                  </button>
+                )}
+              </div>
+            ))}
+            <button type="button" onClick={() => addArrayField('siblings')}>
+              Add Sibling
+            </button>
+          </div>
+        );
+
+      case 6:
+        return (
+          <div className="form-step">
+            <h3>Hobbies</h3>
+            {formData.hobbies.map((hobby, index) => (
+              <div key={index} className="hobby-input">
+                <input
+                  type="text"
+                  placeholder="Hobby"
+                  value={hobby}
+                  onChange={(e) => handleInputChange('hobbies', null, e.target.value, index)}
+                />
+                {index > 0 && (
+                  <button type="button" onClick={() => removeArrayField('hobbies', index)}>
+                    Remove
+                  </button>
+                )}
+              </div>
+            ))}
+            <button type="button" onClick={() => addArrayField('hobbies')}>
+              Add Hobby
+            </button>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="profile-container">
       <Header userType="student" />
       <main className="profile-content">
-        <h2>Student Profile</h2>
-
-        {/* Personal Information */}
-        <section className="personal-info">
-          <h3>Personal Information</h3>
-          <p><strong>Name:</strong> {studentInfo.personalInfo.name}</p>
-          <p><strong>USN:</strong> {studentInfo.personalInfo.usn}</p>
-          <p><strong>Date of Birth:</strong> {studentInfo.personalInfo.dob}</p>
-          <p><strong>Phone:</strong> {studentInfo.personalInfo.phone}</p>
-          <p><strong>Email:</strong> {studentInfo.personalInfo.email}</p>
-        </section>
-
-        {/* Parents Information */}
-        <section className="parent-info">
-          <h3>Parents Information</h3>
-          <p><strong>Father's Name:</strong> {studentInfo.parentInfo.fatherName}</p>
-          <p><strong>Mother's Name:</strong> {studentInfo.parentInfo.motherName}</p>
-          <p><strong>Parents' Contact:</strong> {studentInfo.parentInfo.contact}</p>
-          <p><strong>Parents' Email:</strong> {studentInfo.parentInfo.email}</p>
-        </section>
-
-        {/* Address Information */}
-        <section className="address-info">
-          <h3>Address</h3>
-          <div>
-            <h4>Permanent Address</h4>
-            <p>{studentInfo.address.permanent.street}, {studentInfo.address.permanent.city}, {studentInfo.address.permanent.state}, {studentInfo.address.permanent.zip_code}, {studentInfo.address.permanent.country}</p>
+        <div className="profile-form">
+          <h2>Complete Your Profile</h2>
+          {error && <p className="error-message">{error}</p>}
+          
+          <div className="step-indicator">
+            Step {currentStep} of 6
           </div>
-          <div>
-            <h4>Temporary Address</h4>
-            <p>{studentInfo.address.temporary.street}, {studentInfo.address.temporary.city}, {studentInfo.address.temporary.state}, {studentInfo.address.temporary.zip_code}, {studentInfo.address.temporary.country}</p>
+
+          {renderStep()}
+
+          <div className="form-navigation">
+            {currentStep > 1 && (
+              <button type="button" onClick={() => setCurrentStep(prev => prev - 1)}>
+                Previous
+              </button>
+            )}
+            {currentStep < 6 ? (
+              <button type="button" onClick={() => setCurrentStep(prev => prev + 1)}>
+                Next
+              </button>
+            ) : (
+              <button 
+                type="button" 
+                onClick={handleSubmit}
+                disabled={loading}
+              >
+                {loading ? 'Saving...' : 'Submit Profile'}
+              </button>
+            )}
           </div>
-        </section>
-
-        {/* Academic Information */}
-        <section className="academics-info">
-          <h3>Academic Records</h3>
-          <table className="academics-table">
-            <thead>
-              <tr>
-                <th>Semester</th>
-                <th>GPA</th>
-              </tr>
-            </thead>
-            <tbody>
-              {studentInfo.academics.map((record, index) => (
-                <tr key={index}>
-                  <td>{record.semester}</td>
-                  <td>{record.gpa}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
-
-        {/* Sibling Information */}
-        <section className="sibling-info">
-          <h3>Sibling Information</h3>
-          {studentInfo.siblingInfo.length > 0 ? (
-            studentInfo.siblingInfo.map((sibling, index) => (
-              <p key={index}><strong>Name:</strong> {sibling.siblingName}, <strong>Relationship:</strong> {sibling.relationship}</p>
-            ))
-          ) : (
-            <p>No siblings listed.</p>
-          )}
-        </section>
-
-        {/* Hobbies */}
-        <section className="hobbies-info">
-          <h3>Hobbies</h3>
-          <ul>
-            {studentInfo.hobbies.map((hobby, index) => (
-              <li key={index}>{hobby}</li>
-            ))}
-          </ul>
-        </section>
-
+        </div>
       </main>
       <Footer />
     </div>

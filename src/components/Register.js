@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import './Register.css'; // Add your styles
+import './Register.css';
 
 const Register = () => {
     useEffect(() => {
-        document.title = "Register"; // Change this to the desired title
+        document.title = "Register";
     }, []);
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
-    const navigate = useNavigate();
     const [successMessage, setSuccessMessage] = useState('');
+    const navigate = useNavigate();
 
     const handleRegister = async () => {
         if (!email || !password || !confirmPassword) {
@@ -24,8 +24,6 @@ const Register = () => {
             setError('Password must be at least 6 characters long');
             return;
         }
-
-
         if (password !== confirmPassword) {
             setError('Passwords do not match');
             return;
@@ -33,11 +31,11 @@ const Register = () => {
         setError('');
 
         try {
-            // Send registration request
             const response = await axios.post('http://localhost:5000/api/register', {
                 email,
                 password,
             });
+            
             console.log('Registered:', response.data);
             setSuccessMessage('Registration successful! Redirecting to login...');
             setTimeout(() => {
@@ -51,36 +49,38 @@ const Register = () => {
     };
 
     return (
-        <div className="register-background">
-            <div className="form-container">
-                <h2>Create Account</h2>
-                {error && <p className="error">{error}</p>}
-
-
+        <div className="register-container">
+            <div className="register-form">
+                <h2>Create an Account</h2>
+                {error && <p className="error-message">{error}</p>}
+                {successMessage && <p className="success-message">{successMessage}</p>}
+                
                 <input
                     type="email"
                     placeholder="Email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                 />
+                
                 <input
                     type="password"
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                 />
+                
                 <input
                     type="password"
                     placeholder="Confirm Password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                 />
+                
                 <button onClick={handleRegister}>Register</button>
+                
                 <p>
                     Already have an account? <a href="/login">Login</a>
-
                 </p>
-                {successMessage && <p className="success">{successMessage}</p>}
             </div>
         </div>
     );

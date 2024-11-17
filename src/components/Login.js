@@ -8,9 +8,9 @@ import './Login.css';
 
 const Login = () => {
     useEffect(() => {
-        document.title = "Login"; // Change this to the desired title
+        document.title = "Login"; 
     }, []);
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -18,26 +18,59 @@ const Login = () => {
     const [icon, setIcon] = useState(eyeOff);
     const navigate = useNavigate();
 
-    const handleLogin = () => {
-        if (!username || !password) {
-            setError('Username and Password are required');
+    const handleLogin = async () => {
+        if (!email || !password) {
+            setError('Email and Password are required');
             return;
         }
+        
+        // Basic email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            setError('Please enter a valid email address');
+            return;
+        }
+
         setError('');
         setLoading(true);
 
-        setTimeout(() => {
-            setLoading(false);
-            console.log('Logged in with:', username, password);
+        try {
+            console.log('Attempting login with:', { email });
+            const response = await fetch('http://localhost:5000/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password }),
+            });
 
-            if (username === 'student') {
-                navigate('/student-dashboard');
-            } else if (username === 'teacher') {
-                navigate('/teacher-dashboard');
-            } else {
-                setError('Invalid credentials');
+            const data = await response.json();
+            console.log('Login response:', { status: response.status, data });
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Login failed');
             }
-        }, 1500);
+
+            // Store token in localStorage
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('studentId', data.student.student_id);
+            console.log('Login successful, stored token and studentId');
+
+            setLoading(false);
+
+            // Redirect based on first login status
+            if (data.student.is_first_login) {
+                console.log('Redirecting to profile (first login)');
+                navigate('/student-profile');
+            } else {
+                console.log('Redirecting to dashboard');
+                navigate('/student-dashboard');
+            }
+        } catch (err) {
+            console.error('Login error:', err);
+            setError(err.message);
+            setLoading(false);
+        }
     };
 
     const handleToggle = () => {
@@ -60,10 +93,10 @@ const Login = () => {
                 ) : (
                     <>
                         <input
-                            type="text"
-                            placeholder="Username"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            type="email"
+                            placeholder="Email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                         />
                         <div className="password-container">
                             <input

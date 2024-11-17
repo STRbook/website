@@ -1,6 +1,6 @@
 /* src/components/Register.css */
 
-.register-background {
+.register-container {
     display: flex;
     justify-content: flex-start;
     margin: 0;
@@ -11,7 +11,7 @@
     background-position: center;
 }
 
-.form-container {
+.register-form {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -23,52 +23,76 @@
     height: auto;
 }
 
-.form-container h2 {
+.register-form h2 {
     margin-bottom: 20px;
     color: #fff;
+    font-size: 24px;
 }
 
-.form-container input {
+.register-form input {
     width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
+    padding: 12px;
+    margin-bottom: 15px;
     border: 1px solid #ddd;
     border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
 }
 
-.form-container button {
+.register-form button {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     background-color: #007bff;
-    color: #fff;
+    color: white;
     border: none;
-    cursor: pointer;
     border-radius: 4px;
-    margin-bottom: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
 }
 
-.form-container button:hover {
+.register-form button:hover {
     background-color: #0056b3;
 }
 
-.form-container p {
+.register-form p {
+    margin-top: 20px;
     color: #fff;
+    font-size: 14px;
 }
 
-.form-container a {
+.register-form a {
     color: #007bff;
     text-decoration: none;
+    font-weight: 500;
 }
 
-.form-container a:hover {
+.register-form a:hover {
     text-decoration: underline;
 }
 
-.error {
-    color: red;
-    margin-bottom: 10px;
+.error-message {
+    color: #ff4444;
+    margin-bottom: 15px;
+    text-align: center;
+    font-size: 14px;
 }
-.success {
-    color: green;
-    margin: 10px 0;
+
+.success-message {
+    color: #00C851;
+    margin-bottom: 15px;
+    text-align: center;
+    font-size: 14px;
+}
+
+/* Additional styles for better form appearance */
+.register-form input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.register-form button:active {
+    transform: translateY(1px);
 }

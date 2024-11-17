@@ -1,16 +1,154 @@
 .profile-container {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-
 .profile-content {
-    flex: 1;
+  flex: 1;
+  padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+}
 
-    padding: 30px;
-    max-width: 1200px;
-    
+.profile-form {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.profile-form h2 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 2rem;
+}
+
+.step-indicator {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.form-step {
+  margin-bottom: 2rem;
+}
+
+.form-step h3 {
+  color: #444;
+  margin-bottom: 1.5rem;
+}
+
+.form-step h4 {
+  color: #555;
+  margin: 1rem 0;
+}
+
+.form-step input {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.form-step input:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.address-section {
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+.academic-record {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.academic-record span {
+  min-width: 120px;
+  font-weight: 500;
+}
+
+.academic-record input {
+  flex: 1;
+}
+
+.sibling-info, .hobby-input {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.sibling-info input {
+  flex: 1;
+}
+
+button {
+  background-color: #4a90e2;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+}
+
+button:hover {
+  background-color: #357abd;
+}
+
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.form-navigation {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.error-message {
+  color: #dc3545;
+  text-align: center;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background-color: #f8d7da;
+  border-radius: 4px;
+}
+
+/* Add button styles */
+button[type="button"]:not(.form-navigation button) {
+  background-color: #6c757d;
+  margin-top: 0.5rem;
+}
+
+button[type="button"]:not(.form-navigation button):hover {
+  background-color: #5a6268;
+}
+
+/* Remove button styles */
+button[type="button"].remove-btn {
+  background-color: #dc3545;
+  padding: 0.5rem 1rem;
+}
+
+button[type="button"].remove-btn:hover {
+  background-color: #c82333;
 }
 
 .profile-sections {
@@ -19,14 +157,14 @@
     gap: 20px;
   }
 
-.profile-sections {
+  .profile-sections {
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
     justify-content: space-between;
-}
+  }
 
-.profile-content section {
+  .profile-content section {
     background-color: #f8f9fa;
     border-radius: 8px;
     padding: 20px;
@@ -36,52 +174,52 @@
     flex-basis: calc(50% - 10px);
   }
 
-.profile-content h3 {
+  .profile-content h3 {
     color: #007bff;
     margin-bottom: 15px;
-}
+  }
 
-.profile-content p {
+  .profile-content p {
     margin-bottom: 10px;
-}
+  }
 
-.profile-content strong {
+  .profile-content strong {
     font-weight: 600;
     color: #495057;
-}
+  }
 
-.academics-table {
+  .academics-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
-}
+  }
 
-.academics-table th,
-.academics-table td {
+  .academics-table th,
+  .academics-table td {
     border: 1px solid #dee2e6;
     padding: 10px;
     text-align: left;
-}
+  }
 
-.academics-table th {
+  .academics-table th {
     background-color: #e9ecef;
     font-weight: 600;
-}
+  }
 
-.academics-table tr:nth-child(even) {
+  .academics-table tr:nth-child(even) {
     background-color: #f2f2f2;
-}
+  }
 
-.hobbies-info ul {
+  .hobbies-info ul {
     list-style-type: none;
     padding-left: 0;
-}
+  }
 
-.hobbies-info li {
+  .hobbies-info li {
     margin-bottom: 5px;
-}
+  }
 
-@media (max-width: 768px) {
+  @media (max-width: 768px) {
     .profile-content {
       padding: 20px;
     }
