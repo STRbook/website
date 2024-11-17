@@ -1,22 +1,75 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import './styles/Header.css';
-import logo from '../assets/logo.png'; //
+import logo from '../assets/logo.png';
 
 const Header = ({ userType }) => {
+  const navigate = useNavigate();
+  const [studentName, setStudentName] = useState('');
+
+  useEffect(() => {
+    const fetchStudentName = async () => {
+      try {
+        const studentId = localStorage.getItem('studentId');
+        const token = localStorage.getItem('token');
+
+        if (!studentId || !token) return;
+
+        const response = await fetch(`http://localhost:5000/api/student-profile/${studentId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.first_name && data.last_name) {
+            setStudentName(`${data.first_name} ${data.last_name}`);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching student name:', error);
+      }
+    };
+
+    if (userType === 'student') {
+      fetchStudentName();
+    }
+  }, [userType]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('studentId');
+    navigate('/login');
+  };
+
   return (
     <header className="header">
-      <div className="logo-container">
-        <img src={logo} alt="Logo" className="logo" />
-      <h1>STRbook</h1>
+      <div className="header-content">
+        <div className="logo">
+          <Link to="/">
+            <img src={logo} alt="Logo" />
+            <span>STRbook</span>
+          </Link>
+        </div>
+        <nav className="nav-links">
+          {userType === 'teacher' && (
+            <>
+              <Link to="/teacher-dashboard">Dashboard</Link>
+              <Link to="/manage-students">Manage Students</Link>
+            </>
+          )}
+          {userType === 'student' && (
+            <>
+              <Link to="/student-dashboard">Dashboard</Link>
+              <Link to="/view-profile">
+                {studentName || 'Profile'}
+              </Link>
+            </>
+          )}
+          <button onClick={handleLogout} className="logout-btn">Logout</button>
+        </nav>
       </div>
-      <nav>
-        <ul>
-          {userType === 'teacher' && <li><a href="/teacher-dashboard">TeacherName</a></li>}
-          {userType === 'student' && <li><a href="/student-dashboard">StudentName</a></li>}
-          {userType === 'student' && <li><a href="/student-profile">Profile</a></li>}
-          <li><a href="/logout">Logout</a></li>
-        </ul>
-      </nav>
     </header>
   );
 };

@@ -6,6 +6,8 @@ import Register from './components/Register';
 import StudentDashboard from './components/StudentDashboard';
 import TeacherDashboard from './components/TeacherDashboard';
 import StudentProfile from './components/StudentProfile';
+import ViewProfile from './components/ViewProfile';
+import ProtectedRoute from './components/ProtectedRoute';
 import './index.css';
 
 const App = () => {
@@ -14,9 +16,38 @@ const App = () => {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/student-dashboard" element={<StudentDashboard />} />
-        <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
-        <Route path="/student-profile" element={<StudentProfile />} />
+        <Route 
+          path="/student-dashboard" 
+          element={
+            <ProtectedRoute>
+              <StudentDashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/teacher-dashboard" 
+          element={
+            <ProtectedRoute>
+              <TeacherDashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/student-profile" 
+          element={
+            <ProtectedRoute>
+              <StudentProfile />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/view-profile" 
+          element={
+            <ProtectedRoute>
+              <ViewProfile />
+            </ProtectedRoute>
+          } 
+        />
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </Router>

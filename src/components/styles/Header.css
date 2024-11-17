@@ -13,45 +13,85 @@ html {
 .header {
   background-color: #5a5e62;
   color: white;
-  padding: 10px 5%;
-  /*  prevent overflow */
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  padding: 1rem 2rem;
   width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
-.logo-container {
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
   display: flex;
+  justify-content: space-between;
   align-items: center;
 }
 
 .logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.logo img {
   height: 40px;
   margin-right: 10px;
 }
 
-.header h1 {
-  margin: 0;
-}
-
-.header nav ul {
-  list-style: none;
+.nav-links {
   display: flex;
-  margin: 0;
-  padding: 0;
+  align-items: center;
+  gap: 2rem;
 }
 
-.header nav ul li {
-  margin-left: 20px;
-  
-}
-
-.header nav ul li a {
+.nav-links a {
   color: white;
   text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
 }
 
-.header nav ul li a:hover {
-  text-decoration: underline;
+.nav-links a:hover {
+  color: #e0e0e0;
+}
+
+.logout-btn {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.logout-btn:hover {
+  background-color: #c82333;
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 1rem;
+  }
+
+  .header-content {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .nav-links {
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+    text-align: center;
+  }
+
+  .logout-btn {
+    width: 100%;
+  }
 }

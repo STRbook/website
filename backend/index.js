@@ -137,67 +137,55 @@ app.post('/api/login', async (req, res) => {
 
   console.log('Login request received for email:', email);
 
-  if (!email || !password) {
-    console.log('Missing email or password');
-    return res.status(400).json({ message: 'Email and password are required' });
-  }
-
   try {
-    console.log('Querying database for student with email:', email);
+    // Check if user exists
+    const result = await pool.query('SELECT * FROM students WHERE email = $1', [email]);
+    
+    if (result.rows.length === 0) {
+      console.log('User not found');
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
 
-    // Check if student exists
-    const student = await pool.query(
-      'SELECT student_id, email, password_hash, is_first_login FROM students WHERE email = $1',
-      [email]
+    const student = result.rows[0];
+    
+    // Verify password
+    const validPassword = await bcrypt.compare(password, student.password_hash);
+    
+    if (!validPassword) {
+      console.log('Invalid password');
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    // Generate JWT token with student_id
+    const token = jwt.sign(
+      { 
+        student_id: student.student_id,
+        email: student.email 
+      }, 
+      'your_jwt_secret',
+      { expiresIn: '24h' }
     );
 
-    console.log('Database query result:', { 
-      found: student.rows.length > 0,
-      studentId: student.rows[0]?.student_id
-    });
-
-    if (student.rows.length === 0) {
-      return res.status(400).json({ message: 'Invalid credentials' });
-    }
-
-    // Verify password
-    const validPassword = await bcrypt.compare(password, student.rows[0].password_hash);
-    console.log('Password verification result:', validPassword);
-
-    if (!validPassword) {
-      return res.status(400).json({ message: 'Invalid credentials' });
-    }
-
+    console.log('Login successful, sending response with token');
+    
     // Update last login
     await pool.query(
       'UPDATE students SET last_login = CURRENT_TIMESTAMP WHERE student_id = $1',
-      [student.rows[0].student_id]
+      [student.student_id]
     );
 
-    // Generate JWT token
-    const token = jwt.sign(
-      { student_id: student.rows[0].student_id },
-      'your_jwt_secret',
-      { expiresIn: '1h' }
-    );
-
-    console.log('Login successful, sending response');
-
+    // Send response
     res.json({
       token,
       student: {
-        student_id: student.rows[0].student_id,
-        email: student.rows[0].email,
-        is_first_login: student.rows[0].is_first_login
+        student_id: student.student_id,
+        email: student.email,
+        is_first_login: student.is_first_login
       }
     });
   } catch (err) {
     console.error('Login error:', err);
-    res.status(500).json({ 
-      message: 'Server error during login',
-      error: err.message,
-      detail: err.detail || 'No additional details'
-    });
+    res.status(500).json({ message: 'Server error during login' });
   }
 });
 
@@ -359,15 +347,124 @@ app.post('/api/student-profile', async (req, res) => {
 
 // Middleware to authenticate JWT
 const authenticateToken = (req, res, next) => {
+  console.log('Auth headers:', req.headers['authorization']);
   const token = req.headers['authorization'] && req.headers['authorization'].split(' ')[1];
-  if (!token) return res.sendStatus(401);
+  
+  if (!token) {
+    console.log('No token provided');
+    return res.sendStatus(401);
+  }
 
   jwt.verify(token, 'your_jwt_secret', (err, user) => {
-    if (err) return res.sendStatus(403);
+    if (err) {
+      console.log('Token verification failed:', err);
+      return res.sendStatus(403);
+    }
+    console.log('Token verified for user:', user);
     req.user = user;
     next();
   });
 };
+
+// Get Student Profile
+app.get('/api/student-profile/:studentId', authenticateToken, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { studentId } = req.params;
+    console.log('Fetching profile for student:', studentId);
+
+    // First check if student exists
+    const studentResult = await client.query(
+      'SELECT student_id, email, is_first_login FROM students WHERE student_id = $1',
+      [studentId]
+    );
+    console.log('Student query result:', studentResult.rows);
+
+    if (studentResult.rows.length === 0) {
+      console.log('Student not found');
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    // Get student profile - get the latest profile based on profile_id
+    const profileResult = await client.query(
+      `SELECT sp.*, s.email 
+       FROM student_profiles sp
+       JOIN students s ON s.student_id = sp.student_id
+       WHERE sp.student_id = $1
+       ORDER BY sp.profile_id DESC
+       LIMIT 1`,
+      [studentId]
+    );
+    console.log('Profile query result:', profileResult.rows);
+
+    if (profileResult.rows.length === 0) {
+      console.log('No profile found, returning basic info');
+      return res.json({
+        ...studentResult.rows[0],
+        profile_completed: false
+      });
+    }
+
+    const profile = profileResult.rows[0];
+    const profileId = profile.profile_id;
+
+    // Get all related data in parallel for better performance
+    const [parentResult, addressesResult, academicResult, siblingsResult, hobbiesResult] = await Promise.all([
+      // Get parent info
+      client.query(
+        'SELECT * FROM parent_info WHERE student_profile_id = $1',
+        [profileId]
+      ),
+      // Get addresses
+      client.query(
+        'SELECT * FROM addresses WHERE student_profile_id = $1',
+        [profileId]
+      ),
+      // Get academic records
+      client.query(
+        'SELECT * FROM academic_records WHERE student_profile_id = $1 ORDER BY semester',
+        [profileId]
+      ),
+      // Get siblings
+      client.query(
+        'SELECT * FROM sibling_info WHERE student_profile_id = $1',
+        [profileId]
+      ),
+      // Get hobbies
+      client.query(
+        'SELECT * FROM hobbies WHERE student_profile_id = $1',
+        [profileId]
+      )
+    ]);
+
+    // Construct the complete profile object
+    const studentProfile = {
+      student_id: profile.student_id,
+      email: profile.email,
+      first_name: profile.first_name,
+      last_name: profile.last_name,
+      usn: profile.usn,
+      dob: profile.dob,
+      phone: profile.phone,
+      profile_completed: profile.profile_completed,
+      parent_info: parentResult.rows[0] || null,
+      addresses: addressesResult.rows || [],
+      academic_records: academicResult.rows || [],
+      siblings: siblingsResult.rows || [],
+      hobbies: hobbiesResult.rows || []
+    };
+
+    res.json(studentProfile);
+  } catch (err) {
+    console.error('Error fetching profile:', err);
+    res.status(500).json({ 
+      message: 'Failed to fetch profile',
+      error: err.message 
+    });
+  } finally {
+    client.release();
+  }
+});
 
 // Example protected route
 app.get('/api/student-profile', authenticateToken, (req, res) => {
