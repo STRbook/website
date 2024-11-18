@@ -10,12 +10,12 @@ const Header = ({ userType }) => {
   useEffect(() => {
     const fetchStudentName = async () => {
       try {
-        const studentId = localStorage.getItem('studentId');
+        const student_id = localStorage.getItem('student_id');
         const token = localStorage.getItem('token');
 
-        if (!studentId || !token) return;
+        if (!student_id || !token) return;
 
-        const response = await fetch(`http://localhost:5000/api/student-profile/${studentId}`, {
+        const response = await fetch(`http://localhost:5000/api/student-profile/${student_id}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -39,7 +39,7 @@ const Header = ({ userType }) => {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('studentId');
+    localStorage.removeItem('student_id');
     navigate('/login');
   };
 

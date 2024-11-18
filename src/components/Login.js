@@ -53,8 +53,8 @@ const Login = () => {
 
             // Store token in localStorage
             localStorage.setItem('token', data.token);
-            localStorage.setItem('studentId', data.student.student_id);
-            console.log('Login successful, stored token and studentId');
+            localStorage.setItem('student_id', data.student.student_id);
+            console.log('Login successful, stored token and student_id');
 
             setLoading(false);
 

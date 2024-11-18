@@ -221,7 +221,7 @@ app.get('/api/profile', async (req, res) => {
 });
 
 // Student Profile Endpoint
-app.post('/api/student-profile', async (req, res) => {
+app.post('/api/student-profile', authenticateToken, async (req, res) => {
   const client = await pool.connect();
   
   try {
@@ -232,112 +232,233 @@ app.post('/api/student-profile', async (req, res) => {
       first_name, last_name, usn, dob, phone,
       father_name, mother_name, parent_contact, parent_email,
       permanent_address, temporary_address,
-      academic_records, siblings, hobbies 
+      academic_records, siblings, hobbies,
+      profile_picture_url
     } = req.body;
 
-    // Insert student profile
-    const profileResult = await client.query(
-      `INSERT INTO student_profiles 
-       (student_id, first_name, last_name, usn, dob, phone, profile_completed)
-       VALUES ($1, $2, $3, $4, $5, $6, true)
-       RETURNING profile_id`,
-      [studentId, first_name, last_name, usn, dob, phone]
-    );
-    
-    const profileId = profileResult.rows[0].profile_id;
+    // Verify the authenticated user matches the studentId
+    if (req.user.student_id !== studentId) {
+      throw new Error('Unauthorized: User ID mismatch');
+    }
 
-    // Insert parent information
-    await client.query(
-      `INSERT INTO parent_info 
-       (student_profile_id, father_name, mother_name, contact, email)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [profileId, father_name, mother_name, parent_contact, parent_email]
+    // Check if profile already exists
+    const existingProfile = await client.query(
+      'SELECT profile_id FROM student_profiles WHERE student_id = $1',
+      [studentId]
     );
 
-    // Insert addresses
-    await client.query(
-      `INSERT INTO addresses 
-       (student_profile_id, address_type, street, city, state, zip_code, country)
-       VALUES ($1, 'permanent', $2, $3, $4, $5, $6)`,
-      [
-        profileId,
-        permanent_address.street,
-        permanent_address.city,
-        permanent_address.state,
-        permanent_address.zip_code,
-        permanent_address.country
-      ]
-    );
+    if (existingProfile.rows.length > 0) {
+      // Update existing profile
+      const profileId = existingProfile.rows[0].profile_id;
+      
+      await client.query(
+        `UPDATE student_profiles 
+         SET first_name = $1, last_name = $2, usn = $3, dob = $4, phone = $5, 
+             profile_completed = true, profile_picture_url = $6
+         WHERE profile_id = $7`,
+        [first_name, last_name, usn, dob, phone, profile_picture_url, profileId]
+      );
 
-    await client.query(
-      `INSERT INTO addresses 
-       (student_profile_id, address_type, street, city, state, zip_code, country)
-       VALUES ($1, 'temporary', $2, $3, $4, $5, $6)`,
-      [
-        profileId,
-        temporary_address.street,
-        temporary_address.city,
-        temporary_address.state,
-        temporary_address.zip_code,
-        temporary_address.country
-      ]
-    );
+      // Update parent info
+      await client.query(
+        `UPDATE parent_info 
+         SET father_name = $1, mother_name = $2, contact = $3, email = $4
+         WHERE student_profile_id = $5`,
+        [father_name, mother_name, parent_contact, parent_email, profileId]
+      );
 
-    // Insert academic records
-    for (const record of academic_records) {
-      if (record.gpa) {  // Only insert if GPA is provided
+      // Delete existing addresses
+      await client.query(
+        'DELETE FROM addresses WHERE student_profile_id = $1',
+        [profileId]
+      );
+
+      // Insert new addresses
+      await client.query(
+        `INSERT INTO addresses 
+         (student_profile_id, address_type, street, city, state, zip_code, country)
+         VALUES ($1, 'permanent', $2, $3, $4, $5, $6)`,
+        [
+          profileId,
+          permanent_address.street,
+          permanent_address.city,
+          permanent_address.state,
+          permanent_address.zip_code,
+          permanent_address.country
+        ]
+      );
+
+      await client.query(
+        `INSERT INTO addresses 
+         (student_profile_id, address_type, street, city, state, zip_code, country)
+         VALUES ($1, 'temporary', $2, $3, $4, $5, $6)`,
+        [
+          profileId,
+          temporary_address.street,
+          temporary_address.city,
+          temporary_address.state,
+          temporary_address.zip_code,
+          temporary_address.country
+        ]
+      );
+
+      // Delete existing academic records
+      await client.query(
+        'DELETE FROM academic_records WHERE student_profile_id = $1',
+        [profileId]
+      );
+
+      // Insert new academic records
+      for (const record of academic_records) {
         await client.query(
           `INSERT INTO academic_records 
-           (student_profile_id, semester, gpa)
-           VALUES ($1, $2, $3)`,
-          [profileId, record.semester, record.gpa]
+           (student_profile_id, degree, institution, year, grade)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [profileId, record.degree, record.institution, record.year, record.grade]
         );
       }
-    }
 
-    // Insert siblings
-    for (const sibling of siblings) {
-      if (sibling.sibling_name && sibling.relationship) {  // Only insert if both fields are provided
-        await client.query(
-          `INSERT INTO sibling_info 
-           (student_profile_id, sibling_name, relationship)
-           VALUES ($1, $2, $3)`,
-          [profileId, sibling.sibling_name, sibling.relationship]
-        );
+      // Delete existing siblings
+      await client.query(
+        'DELETE FROM sibling_info WHERE student_profile_id = $1',
+        [profileId]
+      );
+
+      // Insert new siblings
+      for (const sibling of siblings) {
+        if (sibling.sibling_name && sibling.relationship) {
+          await client.query(
+            `INSERT INTO sibling_info 
+             (student_profile_id, sibling_name, relationship)
+             VALUES ($1, $2, $3)`,
+            [profileId, sibling.sibling_name, sibling.relationship]
+          );
+        }
       }
-    }
 
-    // Insert hobbies
-    for (const hobby of hobbies) {
-      if (hobby) {  // Only insert non-empty hobbies
+      // Delete existing hobbies
+      await client.query(
+        'DELETE FROM hobbies WHERE student_profile_id = $1',
+        [profileId]
+      );
+
+      // Insert new hobbies
+      for (const hobby of hobbies) {
         await client.query(
           `INSERT INTO hobbies 
            (student_profile_id, hobby_name)
            VALUES ($1, $2)`,
-          [profileId, hobby]
+          [profileId, hobby.hobby_name]
         );
       }
+
+      await client.query('COMMIT');
+      
+      res.json({ 
+        message: 'Profile updated successfully',
+        profileId 
+      });
+    } else {
+      // Insert new profile
+      const profileResult = await client.query(
+        `INSERT INTO student_profiles 
+         (student_id, first_name, last_name, usn, dob, phone, profile_completed, profile_picture_url)
+         VALUES ($1, $2, $3, $4, $5, $6, true, $7)
+         RETURNING profile_id`,
+        [studentId, first_name, last_name, usn, dob, phone, profile_picture_url]
+      );
+      
+      const profileId = profileResult.rows[0].profile_id;
+
+      // Insert parent information
+      await client.query(
+        `INSERT INTO parent_info 
+         (student_profile_id, father_name, mother_name, contact, email)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [profileId, father_name, mother_name, parent_contact, parent_email]
+      );
+
+      // Insert addresses
+      await client.query(
+        `INSERT INTO addresses 
+         (student_profile_id, address_type, street, city, state, zip_code, country)
+         VALUES ($1, 'permanent', $2, $3, $4, $5, $6)`,
+        [
+          profileId,
+          permanent_address.street,
+          permanent_address.city,
+          permanent_address.state,
+          permanent_address.zip_code,
+          permanent_address.country
+        ]
+      );
+
+      await client.query(
+        `INSERT INTO addresses 
+         (student_profile_id, address_type, street, city, state, zip_code, country)
+         VALUES ($1, 'temporary', $2, $3, $4, $5, $6)`,
+        [
+          profileId,
+          temporary_address.street,
+          temporary_address.city,
+          temporary_address.state,
+          temporary_address.zip_code,
+          temporary_address.country
+        ]
+      );
+
+      // Insert academic records
+      for (const record of academic_records) {
+        await client.query(
+          `INSERT INTO academic_records 
+           (student_profile_id, degree, institution, year, grade)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [profileId, record.degree, record.institution, record.year, record.grade]
+        );
+      }
+
+      // Insert siblings
+      for (const sibling of siblings) {
+        if (sibling.sibling_name && sibling.relationship) {
+          await client.query(
+            `INSERT INTO sibling_info 
+             (student_profile_id, sibling_name, relationship)
+             VALUES ($1, $2, $3)`,
+            [profileId, sibling.sibling_name, sibling.relationship]
+          );
+        }
+      }
+
+      // Insert hobbies
+      for (const hobby of hobbies) {
+        await client.query(
+          `INSERT INTO hobbies 
+           (student_profile_id, hobby_name)
+           VALUES ($1, $2)`,
+          [profileId, hobby.hobby_name]
+        );
+      }
+
+      // Update is_first_login in students table
+      await client.query(
+        `UPDATE students 
+         SET is_first_login = false 
+         WHERE student_id = $1`,
+        [studentId]
+      );
+
+      await client.query('COMMIT');
+      
+      res.json({ 
+        message: 'Profile created successfully',
+        profileId 
+      });
     }
-
-    // Update is_first_login in students table
-    await client.query(
-      `UPDATE students 
-       SET is_first_login = false 
-       WHERE student_id = $1`,
-      [studentId]
-    );
-
-    await client.query('COMMIT');
-    
-    res.json({ 
-      message: 'Profile created successfully',
-      profileId 
-    });
   } catch (err) {
     await client.query('ROLLBACK');
-    console.error('Error creating profile:', err);
-    res.status(500).json({ 
-      message: 'Failed to create profile',
+    console.error('Error creating/updating profile:', err);
+    res.status(err.message === 'Unauthorized: User ID mismatch' ? 403 : 500).json({ 
+      message: 'Failed to create/update profile',
       error: err.message 
     });
   } finally {
@@ -422,7 +543,7 @@ app.get('/api/student-profile/:studentId', authenticateToken, async (req, res) =
       ),
       // Get academic records
       client.query(
-        'SELECT * FROM academic_records WHERE student_profile_id = $1 ORDER BY semester',
+        'SELECT * FROM academic_records WHERE student_profile_id = $1 ORDER BY year DESC',
         [profileId]
       ),
       // Get siblings
@@ -469,6 +590,56 @@ app.get('/api/student-profile/:studentId', authenticateToken, async (req, res) =
 // Example protected route
 app.get('/api/student-profile', authenticateToken, (req, res) => {
   //logic to get student profile
+});
+
+// Get Student Profile
+app.get('/api/student-profile/:studentId', authenticateToken, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    // Get basic profile info
+    const profileResult = await client.query(
+      `SELECT * FROM student_profiles WHERE student_id = $1`,
+      [req.params.studentId]
+    );
+
+    if (profileResult.rows.length === 0) {
+      return res.status(404).json({ message: 'Profile not found' });
+    }
+
+    const profile = profileResult.rows[0];
+    const profileId = profile.profile_id;
+
+    // Get academic records
+    const academicRecords = await client.query(
+      `SELECT degree, institution, year, grade 
+       FROM academic_records 
+       WHERE student_profile_id = $1 
+       ORDER BY year DESC`,
+      [profileId]
+    );
+
+    // Get hobbies
+    const hobbies = await client.query(
+      `SELECT hobby_name 
+       FROM hobbies 
+       WHERE student_profile_id = $1`,
+      [profileId]
+    );
+
+    // Combine all data
+    const fullProfile = {
+      ...profile,
+      academic_records: academicRecords.rows,
+      hobbies: hobbies.rows
+    };
+
+    res.json(fullProfile);
+  } catch (err) {
+    console.error('Error fetching profile:', err);
+    res.status(500).json({ message: 'Server error' });
+  } finally {
+    client.release();
+  }
 });
 
 // Start the server

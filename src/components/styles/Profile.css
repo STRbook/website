@@ -1,308 +1,91 @@
 .profile-container {
   min-height: 100vh;
-  display: flex;
+  background-color: #f8f9fa;
+  
   flex-direction: column;
 }
 
 .profile-content {
-  flex: 1;
-  padding: 2rem;
-  max-width: 800px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-.profile-form {
-  background-color: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.profile-form h2 {
-  text-align: center;
-  color: #333;
-  margin-bottom: 2rem;
-}
-
-.step-indicator {
-  text-align: center;
-  margin-bottom: 2rem;
-  color: #666;
-  font-weight: 500;
-}
-
-.form-step {
-  margin-bottom: 2rem;
-}
-
-.form-step h3 {
-  color: #444;
-  margin-bottom: 1.5rem;
-}
-
-.form-step h4 {
-  color: #555;
-  margin: 1rem 0;
-}
-
-.form-step input {
-  width: 100%;
-  padding: 0.75rem;
-  margin-bottom: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-.form-step input:focus {
-  outline: none;
-  border-color: #4a90e2;
-  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
-}
-
-.address-section {
-  margin-bottom: 2rem;
-  padding: 1rem;
-  background-color: #f8f9fa;
-  border-radius: 4px;
-}
-
-.academic-record {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.academic-record span {
-  min-width: 120px;
-  font-weight: 500;
-}
-
-.academic-record input {
-  flex: 1;
-}
-
-.sibling-info, .hobby-input {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.sibling-info input {
-  flex: 1;
-}
-
-button {
-  background-color: #4a90e2;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.2s;
-}
-
-button:hover {
-  background-color: #357abd;
-}
-
-button:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
-
-.form-navigation {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 2rem;
-  padding-top: 1rem;
-  border-top: 1px solid #eee;
-}
-
-.error-message,
-.profile-not-found {
-  text-align: center;
-  padding: 2rem;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  max-width: 1200px;
   margin: 2rem auto;
-  max-width: 600px;
+  padding: 0 2rem;
+  flex-grow: 1;
 }
 
-.error-message {
-  color: #dc3545;
-  border: 1px solid #dc3545;
-}
-
-.profile-not-found {
-  color: #666;
-}
-
-.error-action-btn,
-.create-profile-btn {
-  display: inline-block;
-  margin-top: 1rem;
-  padding: 0.5rem 1rem;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.2s;
-}
-
-.error-action-btn:hover,
-.create-profile-btn:hover {
-  background-color: #0056b3;
-}
-
-.loading {
-  text-align: center;
-  padding: 2rem;
-  color: #666;
-  font-size: 1.2rem;
-}
-
-.profile-sections {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-  }
-
-  .profile-sections {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: space-between;
-  }
-
-  .profile-content section {
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    box-sizing: border-box;
-    flex-basis: calc(50% - 10px);
-  }
-
-  .profile-content h3 {
-    color: #007bff;
-    margin-bottom: 15px;
-  }
-
-  .profile-content p {
-    margin-bottom: 10px;
-  }
-
-  .profile-content strong {
-    font-weight: 600;
-    color: #495057;
-  }
-
-  .academics-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-  }
-
-  .academics-table th,
-  .academics-table td {
-    border: 1px solid #dee2e6;
-    padding: 10px;
-    text-align: left;
-  }
-
-  .academics-table th {
-    background-color: #e9ecef;
-    font-weight: 600;
-  }
-
-  .academics-table tr:nth-child(even) {
-    background-color: #f2f2f2;
-  }
-
-  .hobbies-info ul {
-    list-style-type: none;
-    padding-left: 0;
-  }
-
-  .hobbies-info li {
-    margin-bottom: 5px;
-  }
-
-  @media (max-width: 768px) {
-    .profile-content {
-      padding: 20px;
-    }
-  
-    .profile-content section {
-      flex-basis: 100%;
-    }
-  }
-
-/* Profile View Styles */
 .profile-view {
-  background-color: white;
-  padding: 2rem;
+  background: white;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.profile-view h2 {
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+  padding: 1.5rem;
+  border-bottom: 1px solid #eee;
 }
 
 .profile-section {
-  margin-bottom: 2rem;
-  padding-bottom: 2rem;
+  padding: 1.5rem;
   border-bottom: 1px solid #eee;
 }
 
 .profile-section:last-child {
   border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0;
+}
+
+.profile-section h3 {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #333;
+  margin: 0 0 1rem 0;
 }
 
 .info-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1.5rem;
-  margin-top: 1rem;
 }
 
 .info-item {
   display: flex;
   flex-direction: column;
+  gap: 0.5rem;
 }
 
 .info-item label {
-  font-weight: 500;
+  font-size: 0.9rem;
   color: #666;
-  margin-bottom: 0.5rem;
+  font-weight: 400;
 }
 
 .info-item span {
+  font-size: 1rem;
   color: #333;
 }
 
 .address-block {
-  margin-bottom: 2rem;
-  padding: 1rem;
-  background-color: #f8f9fa;
-  border-radius: 4px;
+  margin-bottom: 1.5rem;
 }
 
 .address-block:last-child {
   margin-bottom: 0;
 }
 
+.address-block h4 {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
+  margin: 0 0 1rem 0;
+}
+
 .academic-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
 }
 
 .academic-table th,
@@ -315,41 +98,90 @@ button:disabled {
 .academic-table th {
   font-weight: 500;
   color: #666;
-  background-color: #f8f9fa;
+  font-size: 0.9rem;
 }
 
-.info-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.relationship {
-  color: #666;
-  margin-left: 0.5rem;
+.academic-table td {
+  color: #333;
 }
 
 .hobbies-list {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-top: 1rem;
 }
 
 .hobby-tag {
-  background-color: #e9ecef;
-  color: #495057;
+  background-color: #f8f9fa;
+  color: #333;
   padding: 0.5rem 1rem;
-  border-radius: 20px;
+  border-radius: 4px;
   font-size: 0.9rem;
 }
 
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+.error-message,
+.profile-not-found {
+  text-align: center;
+  padding: 2rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.error-message {
+  color: #dc3545;
+}
+
+.profile-not-found h2 {
+  color: #333;
+  margin: 0 0 1rem 0;
+}
+
+.profile-not-found p {
+  color: #666;
+  margin: 0 0 1.5rem 0;
+}
+
+.error-action-btn,
+.create-profile-btn {
+  background: none;
+  border: 1px solid #333;
+  color: #333;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.error-action-btn:hover,
+.create-profile-btn:hover {
+  background-color: #333;
+  color: white;
+}
+
 @media (max-width: 768px) {
-  .profile-view {
+  .profile-content {
+    padding: 0 1rem;
+    margin: 1rem auto;
+  }
+
+  .profile-view h2 {
+    padding: 1rem;
+  }
+
+  .profile-section {
     padding: 1rem;
   }
 
   .info-grid {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
 }

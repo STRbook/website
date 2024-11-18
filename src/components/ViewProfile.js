@@ -13,20 +13,20 @@ const ViewProfile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const studentId = localStorage.getItem('studentId');
+        const student_id = localStorage.getItem('student_id');
         const token = localStorage.getItem('token');
 
-        console.log('StudentId:', studentId);
+        console.log('Student ID:', student_id);
         console.log('Token:', token ? 'exists' : 'missing');
 
-        if (!studentId || !token) {
+        if (!student_id || !token) {
           console.log('Missing credentials, redirecting to login');
           navigate('/login');
           return;
         }
 
         console.log('Fetching profile...');
-        const response = await fetch(`http://localhost:5000/api/student-profile/${studentId}`, {
+        const response = await fetch(`http://localhost:5000/api/student-profile/${student_id}`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -40,7 +40,7 @@ const ViewProfile = () => {
           if (response.status === 401) {
             console.log('Unauthorized, redirecting to login');
             localStorage.removeItem('token');
-            localStorage.removeItem('studentId');
+            localStorage.removeItem('student_id');
             navigate('/login');
             return;
           }
