@@ -49,22 +49,20 @@ const Header = ({ userType }) => {
         <div className="logo">
           <Link to="/">
             <img src={logo} alt="Logo" />
-            <span>STRbook</span>
           </Link>
         </div>
         <nav className="nav-links">
+          {userType === 'student' && (
+            <>
+              <Link to="/timetable">Timetable</Link>
+              <Link to="/view-profile">Profile</Link>
+              <Link to="/student-dashboard">Dashboard</Link>
+              <span className="student-name">{studentName}</span>
+            </>
+          )}
           {userType === 'teacher' && (
             <>
               <Link to="/teacher-dashboard">Dashboard</Link>
-              <Link to="/manage-students">Manage Students</Link>
-            </>
-          )}
-          {userType === 'student' && (
-            <>
-              <Link to="/student-dashboard">Dashboard</Link>
-              <Link to="/view-profile">
-                {studentName || 'Profile'}
-              </Link>
             </>
           )}
           <button onClick={handleLogout} className="logout-btn">Logout</button>

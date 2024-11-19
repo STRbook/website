@@ -7,6 +7,7 @@ import StudentDashboard from './components/StudentDashboard';
 import TeacherDashboard from './components/TeacherDashboard';
 import StudentProfile from './components/StudentProfile';
 import ViewProfile from './components/ViewProfile';
+import TimeTable from './components/TimeTable';
 import ProtectedRoute from './components/ProtectedRoute';
 import './index.css';
 
@@ -44,6 +45,14 @@ const App = () => {
         element={
           <ProtectedRoute>
             <ViewProfile />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/timetable" 
+        element={
+          <ProtectedRoute>
+            <TimeTable />
           </ProtectedRoute>
         } 
       />

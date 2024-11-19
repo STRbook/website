@@ -1,0 +1,141 @@
+.page-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.timetable-container {
+  flex: 1;
+  padding: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.timetable-title {
+  text-align: center;
+  color: #2c3e50;
+  margin-bottom: 20px;
+  font-size: 24px;
+}
+
+.timetable {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.timetable-header {
+  display: grid;
+  grid-template-columns: 100px repeat(9, minmax(100px, 1fr));
+  background-color: #3498db;
+  color: white;
+  font-weight: bold;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.day-column,
+.time-column {
+  padding: 8px;
+  text-align: center;
+  border-right: 1px solid #2980b9;
+  font-size: 0.9rem;
+}
+
+.day-column {
+  background-color: #2980b9;
+}
+
+.timetable-body {
+  background-color: #fff;
+}
+
+.day-row {
+  display: grid;
+  grid-template-columns: 100px repeat(9, minmax(100px, 1fr));
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.day-name {
+  padding: 8px;
+  background-color: #f5f6fa;
+  border-right: 1px solid #e0e0e0;
+  font-weight: 500;
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.subject-cell {
+  padding: 8px;
+  border-right: 1px solid #e0e0e0;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50px;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.subject-cell:hover {
+  background-color: #f8f9fa;
+}
+
+/* Break and Lunch styles */
+.break-cell {
+  background-color: #ebf5fb;
+  color: #2980b9;
+  font-weight: 500;
+}
+
+.lunch-cell {
+  background-color: #fef5e7;
+  color: #f39c12;
+  font-weight: 500;
+}
+
+/* Responsive styles */
+@media screen and (max-width: 768px) {
+  .timetable-container {
+    padding: 10px;
+  }
+
+  .timetable {
+    font-size: 12px;
+  }
+
+  .day-column,
+  .time-column,
+  .day-name,
+  .subject-cell {
+    padding: 6px;
+    font-size: 11px;
+  }
+
+  .day-row {
+    grid-template-columns: 80px repeat(9, minmax(80px, 1fr));
+  }
+
+  .timetable-header {
+    grid-template-columns: 80px repeat(9, minmax(80px, 1fr));
+  }
+}
+
+/* Print styles */
+@media print {
+  .timetable-container {
+    box-shadow: none;
+  }
+
+  .subject-cell:hover {
+    background-color: transparent;
+  }
+}

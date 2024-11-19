@@ -63,8 +63,8 @@ const Login = () => {
                 console.log('Redirecting to profile (first login)');
                 navigate('/student-profile');
             } else {
-                console.log('Redirecting to dashboard');
-                navigate('/student-dashboard');
+                console.log('Redirecting to timetable');
+                navigate('/timetable');
             }
         } catch (err) {
             console.error('Login error:', err);

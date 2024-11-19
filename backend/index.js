@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -6,6 +7,10 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 const app = express();
+
+// JWT Secret Key
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+console.log('JWT_SECRET loaded:', JWT_SECRET ? 'Yes' : 'No');
 
 // Configure CORS
 app.use(cors({
@@ -19,21 +24,40 @@ app.use(bodyParser.json());
 
 // Connect to PostgreSQL
 const pool = new Pool({
-  user: 'postgres',       // Your PostgreSQL username
-  host: 'localhost',      // Hostname
-  database: 'str_book',   // Your database name
-  password: 'pg',         // Your PostgreSQL password
-  port: 5432,             // PostgreSQL port
+  user: process.env.DB_USER || 'postgres',
+  host: process.env.DB_HOST || 'localhost',
+  database: process.env.DB_NAME || 'str_book',
+  password: process.env.DB_PASSWORD || 'pg',
+  port: parseInt(process.env.DB_PORT || '5432'),
 });
 
 // Test the DB connection
 pool.query('SELECT NOW()', (err, res) => {
   if (err) {
-    console.log(err);
+    console.error('Error connecting to the database:', err);
   } else {
-    console.log('Database connected:', res.rows);
+    console.log('Connected to database at:', res.rows[0].now);
   }
 });
+
+// Middleware to authenticate JWT
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ message: 'Authentication token required' });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) {
+      console.error('Token verification failed:', err);
+      return res.status(403).json({ message: 'Invalid or expired token' });
+    }
+    req.user = user;
+    next();
+  });
+};
 
 // Example route
 app.get('/', (req, res) => {
@@ -109,7 +133,7 @@ app.post('/api/register', async (req, res) => {
     // Generate JWT token
     const token = jwt.sign(
       { student_id: newStudent.rows[0].student_id },
-      'your_jwt_secret',
+      JWT_SECRET,
       { expiresIn: '1h' }
     );
 
@@ -147,6 +171,7 @@ app.post('/api/login', async (req, res) => {
     }
 
     const student = result.rows[0];
+    console.log('Found student:', { id: student.student_id, email: student.email });
     
     // Verify password
     const validPassword = await bcrypt.compare(password, student.password_hash);
@@ -162,11 +187,15 @@ app.post('/api/login', async (req, res) => {
         student_id: student.student_id,
         email: student.email 
       }, 
-      'your_jwt_secret',
+      JWT_SECRET,
       { expiresIn: '24h' }
     );
 
-    console.log('Login successful, sending response with token');
+    console.log('Generated token for student:', { 
+      id: student.student_id, 
+      email: student.email,
+      tokenLength: token.length 
+    });
     
     // Update last login
     await pool.query(
@@ -466,33 +495,32 @@ app.post('/api/student-profile', authenticateToken, async (req, res) => {
   }
 });
 
-// Middleware to authenticate JWT
-const authenticateToken = (req, res, next) => {
-  console.log('Auth headers:', req.headers['authorization']);
-  const token = req.headers['authorization'] && req.headers['authorization'].split(' ')[1];
-  
-  if (!token) {
-    console.log('No token provided');
-    return res.sendStatus(401);
-  }
-
-  jwt.verify(token, 'your_jwt_secret', (err, user) => {
-    if (err) {
-      console.log('Token verification failed:', err);
-      return res.sendStatus(403);
-    }
-    console.log('Token verified for user:', user);
-    req.user = user;
-    next();
-  });
-};
-
 // Get Student Profile
 app.get('/api/student-profile/:studentId', authenticateToken, async (req, res) => {
   const client = await pool.connect();
   try {
     const { studentId } = req.params;
     console.log('Fetching profile for student:', studentId);
+    console.log('Authenticated user:', req.user);
+
+    // Verify that the authenticated user is accessing their own profile
+    if (req.user.student_id !== parseInt(studentId)) {
+      console.log('User ID mismatch - Access denied:', {
+        requestedId: parseInt(studentId),
+        authenticatedId: req.user.student_id,
+        authenticatedEmail: req.user.email
+      });
+      return res.status(403).json({ 
+        message: 'Unauthorized: You can only view your own profile',
+        requested: parseInt(studentId),
+        authenticated: req.user.student_id
+      });
+    }
+
+    console.log('User authorized to access profile:', {
+      id: req.user.student_id,
+      email: req.user.email
+    });
 
     // First check if student exists
     const studentResult = await client.query(

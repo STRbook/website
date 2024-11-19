@@ -112,50 +112,73 @@ const StudentProfile = () => {
     const errors = [];
 
     // Personal Information
-    if (!formData.first_name.trim()) errors.push('First name is required');
-    if (!formData.last_name.trim()) errors.push('Last name is required');
+    if (!formData.first_name?.trim()) errors.push('First name is required');
+    if (!formData.last_name?.trim()) errors.push('Last name is required');
     if (!formData.dob) errors.push('Date of birth is required');
-    if (!formData.phone.trim()) errors.push('Phone number is required');
-    if (!formData.email.trim()) errors.push('Email is required');
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    if (!formData.phone?.trim()) errors.push('Phone number is required');
+    if (!formData.email?.trim()) errors.push('Email is required');
+    
+    // Email validation (both student and parent)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (formData.email && !emailRegex.test(formData.email)) {
       errors.push('Please enter a valid email address');
     }
-    if (formData.phone && !/^\d{10,}$/.test(formData.phone.replace(/[^0-9]/g, ''))) {
-      errors.push('Please enter a valid phone number (at least 10 digits)');
+    
+    // Phone validation with international format support
+    const phoneRegex = /^\+?[\d\s-]{10,}$/;
+    if (formData.phone && !phoneRegex.test(formData.phone.trim())) {
+      errors.push('Please enter a valid phone number (at least 10 digits, can include +, spaces, or hyphens)');
     }
 
-    // Parent Information
-    if (!formData.parent_info.father_name.trim()) errors.push('Father\'s name is required');
-    if (!formData.parent_info.mother_name.trim()) errors.push('Mother\'s name is required');
-    if (!formData.parent_info.contact.trim()) errors.push('Parent\'s contact is required');
-    if (!formData.parent_info.email.trim()) errors.push('Parent\'s email is required');
-    if (formData.parent_info.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.parent_info.email)) {
+    // Parent Information (nullable in DB, but required in form for completeness)
+    if (!formData.parent_info.father_name?.trim()) errors.push('Father\'s name is required');
+    if (!formData.parent_info.mother_name?.trim()) errors.push('Mother\'s name is required');
+    if (!formData.parent_info.contact?.trim()) errors.push('Parent\'s contact is required');
+    if (!formData.parent_info.email?.trim()) errors.push('Parent\'s email is required');
+    if (formData.parent_info.email && !emailRegex.test(formData.parent_info.email)) {
       errors.push('Please enter a valid parent email address');
     }
+    if (formData.parent_info.contact && !phoneRegex.test(formData.parent_info.contact.trim())) {
+      errors.push('Please enter a valid parent contact number');
+    }
 
-    // Permanent Address
-    if (!formData.permanent_address.street.trim()) errors.push('Permanent address street is required');
-    if (!formData.permanent_address.city.trim()) errors.push('Permanent address city is required');
-    if (!formData.permanent_address.state.trim()) errors.push('Permanent address state is required');
-    if (!formData.permanent_address.postal_code.trim()) errors.push('Permanent address postal code is required');
-    if (!formData.permanent_address.country.trim()) errors.push('Permanent address country is required');
+    // Address Validation (nullable in DB, but required in form for completeness)
+    const validateAddress = (address, prefix) => {
+      if (!address.street?.trim()) errors.push(`${prefix} street is required`);
+      if (!address.city?.trim()) errors.push(`${prefix} city is required`);
+      if (!address.state?.trim()) errors.push(`${prefix} state is required`);
+      if (!address.zip_code?.trim()) errors.push(`${prefix} postal code is required`);
+      if (!address.country?.trim()) errors.push(`${prefix} country is required`);
+    };
 
-    // Current/Temporary Address
-    if (!formData.current_address.street.trim()) errors.push('Current address street is required');
-    if (!formData.current_address.city.trim()) errors.push('Current address city is required');
-    if (!formData.current_address.state.trim()) errors.push('Current address state is required');
-    if (!formData.current_address.postal_code.trim()) errors.push('Current address postal code is required');
-    if (!formData.current_address.country.trim()) errors.push('Current address country is required');
+    validateAddress(formData.permanent_address, 'Permanent address');
+    validateAddress(formData.current_address, 'Current address');
 
-    // Academic Records
-    if (formData.academic_records.length === 0) {
+    // Academic Records (required in DB)
+    if (!Array.isArray(formData.academic_records) || formData.academic_records.length === 0) {
       errors.push('At least one academic record is required');
     } else {
       formData.academic_records.forEach((record, index) => {
-        if (!record.degree.trim()) errors.push(`Degree is required for academic record ${index + 1}`);
-        if (!record.institution.trim()) errors.push(`Institution is required for academic record ${index + 1}`);
+        if (!record.degree?.trim()) errors.push(`Degree is required for academic record ${index + 1}`);
+        if (!record.institution?.trim()) errors.push(`Institution is required for academic record ${index + 1}`);
         if (!record.year) errors.push(`Year is required for academic record ${index + 1}`);
-        if (!record.grade.trim()) errors.push(`Grade is required for academic record ${index + 1}`);
+        if (!record.grade?.trim()) errors.push(`Grade is required for academic record ${index + 1}`);
+        
+        // Additional validation for year
+        const currentYear = new Date().getFullYear();
+        const year = parseInt(record.year);
+        if (isNaN(year) || year < 1900 || year > currentYear + 5) {
+          errors.push(`Invalid year for academic record ${index + 1}. Year must be between 1900 and ${currentYear + 5}`);
+        }
+      });
+    }
+
+    // Hobbies validation (optional but if present should have a name)
+    if (Array.isArray(formData.hobbies)) {
+      formData.hobbies.forEach((hobby, index) => {
+        if (!hobby?.hobby_name?.trim()) {
+          errors.push(`Hobby name is required for hobby ${index + 1}`);
+        }
       });
     }
 
