@@ -2,102 +2,111 @@
 
 Web app to replace physical str book.
 
-## Features
+## Key Features
 
-- User authentication (Login/Register)
-- Student Dashboard
-  - Add MOOC certificates
-  - View previous MOOC certificates
-- Teacher Dashboard
-  - View students' MOOC certificates
-  - Score certificates
-- Student Profile
-  - View and manage personal information
+### For Students
+- **Authentication & Profile Management**
+  - Secure login/registration system
+  - Comprehensive profile management
+  
+- **MOOC Certificate Management**
+  - Upload and store MOOC certificates
+  - Track certification progress
+  - View certification history
+
+- **Academic Portfolio**
+  - Track academic achievements
+  - Manage hobbies and extracurricular activities
+  - Progress visualization
+
+### For Teachers
+- **Student Management**
+  - View student profiles and progress
+  - Evaluate MOOC certificates
+  - Provide feedback and scoring
+
 
 ## Technologies Used
 
-- Frontend: React.js
-- Backend: Node.js with Express.js
-- Database: PostgreSQL
-- Authentication: JSON Web Tokens (JWT)
+- **Frontend**
+  - React.js
+  - Material-UI
+  - Firebase Integration
+  
+- **Backend**
+  - Node.js
+  - Express.js
+  - PostgreSQL
+  - JWT Authentication
 
-## Getting Started
+## Prerequisites
 
-### Prerequisites
-
+Before you begin, ensure you have the following installed:
 - Node.js (v14 or later)
 - npm (v6 or later)
-- PostgreSQL
+- PostgreSQL (v12 or later)
+- Git
 
-### Installation
+## Local Development Setup
 
-1. Clone the repository:
-   ```
+1. **Clone the Repository**
+   ```bash
    git clone https://github.com/sajalkmr/strbook.git
    cd strbook
    ```
 
-2. Install dependencies for both frontend and backend:
+2. **Environment Configuration**
+   Create a `.env` file in the root directory:
+   ```env
+   # Frontend Environment Variables
+   REACT_APP_API_URL=http://localhost:5000
+   REACT_APP_FIREBASE_API_KEY=your_firebase_api_key
+   REACT_APP_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
+   
+   # Backend Environment Variables
+   PORT=5000
+   DB_USER=postgres
+   DB_PASSWORD=your_password
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_NAME=str_book
+   JWT_SECRET=your_jwt_secret
    ```
+
+3. **Install Dependencies**
+   ```bash
+   # Install frontend dependencies
    npm install
+
+   # Install backend dependencies
    cd backend
    npm install
    ```
 
-3. Set up the database:
-   - Create a PostgreSQL database named `str_book`
-   - Update the database connection details in `backend/index.js`:
-
-   ```javascript
-   const pool = new Pool({
-     user: 'postgres',       // Your PostgreSQL username
-     host: 'localhost',      // Hostname
-     database: 'str_book',   // Your database name
-     password: 'pg',         // Your PostgreSQL password
-     port: 5432,             // PostgreSQL port
-   });
-   ```
-
-4. Start the backend server:
-   ```
+4. **Database Setup**
+   ```bash
+   # Create PostgreSQL database
+   psql -U postgres
+   CREATE DATABASE str_book;
+   
+   # Run migrations
    cd backend
-   node index.js
+   node migrations/run-migrations.js
    ```
 
-5. Start the frontend development server:
-   ```
-   cd ..
+5. **Start Development Servers**
+   ```bash
+   # Option 1: Start servers separately
+   # Start backend server (from backend directory)
+   npm run backend
+   
+   # Start frontend development server (from root directory)
    npm start
+   
+   # Option 2: Start both servers concurrently
+   npm run dev
    ```
 
-6. Open your browser and navigate to `http://localhost:3000`
-
-## Usage
-
-### Student
-
-1. Register a new account or log in
-2. Navigate to the dashboard to add new MOOC certificates
-3. View your profile and previous certificates
-
-### Teacher
-
-1. Log in with teacher credentials
-2. Select a class to view students' MOOC certificates
-3. Review and score the certificates
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## License
-
-
-
-## Acknowledgements
-
-- [Create React App](https://github.com/facebook/create-react-app)
-- [Express.js](https://expressjs.com/)
-- [PostgreSQL](https://www.postgresql.org/)
-- [bcrypt](https://github.com/kelektiv/node.bcrypt.js)
-- [JSON Web Tokens](https://jwt.io/)
+6. **Access the Application**
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:5000
