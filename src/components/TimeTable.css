@@ -6,7 +6,8 @@
 
 .timetable-container {
   flex: 1;
-  padding: 20px;
+  padding-bottom: 60px;
+  padding-top: 30px;
   max-width: 1000px;
   margin: 0 auto;
   background-color: #ffffff;

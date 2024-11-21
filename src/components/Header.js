@@ -55,9 +55,10 @@ const Header = ({ userType }) => {
           {userType === 'student' && (
             <>
               <Link to="/timetable">Timetable</Link>
-              <Link to="/view-profile">Profile</Link>
               <Link to="/student-dashboard">Dashboard</Link>
-              <span className="student-name">{studentName}</span>
+              <Link to="/view-profile" className="student-name">
+                {studentName || 'Profile'}
+              </Link>
             </>
           )}
           {userType === 'teacher' && (
