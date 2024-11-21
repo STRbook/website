@@ -3,12 +3,13 @@ import React from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
 import Login from './components/Login';
 import Register from './components/Register';
-import StudentDashboard from './components/StudentDashboard';
 import TeacherDashboard from './components/TeacherDashboard';
 import StudentProfile from './components/StudentProfile';
 import ViewProfile from './components/ViewProfile';
 import TimeTable from './components/TimeTable';
+import StudentMooc from './components/StudentMooc';
 import ProtectedRoute from './components/ProtectedRoute';
+import './App.css';
 import './index.css';
 
 const App = () => {
@@ -17,10 +18,10 @@ const App = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route 
-        path="/student-dashboard" 
+        path="/mooc" 
         element={
           <ProtectedRoute>
-            <StudentDashboard />
+            <StudentMooc />
           </ProtectedRoute>
         } 
       />

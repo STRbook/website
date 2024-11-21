@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const moocCertificatesRouter = require('./routes/moocCertificates');
 
 const app = express();
 
@@ -14,13 +15,14 @@ console.log('JWT_SECRET loaded:', JWT_SECRET ? 'Yes' : 'No');
 
 // Configure CORS
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: ['http://localhost:3000', 'http://localhost:5000'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
 
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // Connect to PostgreSQL
 const pool = new Pool({
@@ -596,6 +598,7 @@ app.get('/api/student-profile/:studentId', authenticateToken, async (req, res) =
       dob: profile.dob,
       phone: profile.phone,
       profile_completed: profile.profile_completed,
+      profile_picture_url: profile.profile_picture_url,
       parent_info: parentResult.rows[0] || null,
       addresses: addressesResult.rows || [],
       academic_records: academicResult.rows || [],
@@ -669,6 +672,218 @@ app.get('/api/student-profile/:studentId', authenticateToken, async (req, res) =
     client.release();
   }
 });
+
+// Update Student Profile
+app.put('/api/student-profile/update', authenticateToken, async (req, res) => {
+  const client = await pool.connect();
+  
+  try {
+    await client.query('BEGIN');
+    
+    const profile = req.body;
+    const studentId = req.user.student_id;
+
+    console.log('Received profile update:', profile);  // Debug log
+
+    // Input validation
+    if (!profile) {
+      throw new Error('Profile data is required');
+    }
+
+    // Get the profile_id
+    const profileResult = await client.query(
+      'SELECT profile_id FROM student_profiles WHERE student_id = $1',
+      [studentId]
+    );
+
+    if (profileResult.rows.length === 0) {
+      throw new Error('Profile not found');
+    }
+
+    const profileId = profileResult.rows[0].profile_id;
+
+    try {
+      // Update basic profile information
+      await client.query(
+        `UPDATE student_profiles 
+         SET first_name = COALESCE($1, first_name),
+             last_name = COALESCE($2, last_name),
+             phone = COALESCE($3, phone),
+             dob = COALESCE($4, dob)
+         WHERE profile_id = $5`,
+        [profile.first_name, profile.last_name, profile.phone, profile.dob, profileId]
+      );
+
+      // Update parent information if it exists
+      if (profile.parent_info) {
+        const parentResult = await client.query(
+          'SELECT parent_id FROM parent_info WHERE student_profile_id = $1',
+          [profileId]
+        );
+
+        if (parentResult.rows.length > 0) {
+          await client.query(
+            `UPDATE parent_info 
+             SET father_name = COALESCE($1, father_name),
+                 mother_name = COALESCE($2, mother_name),
+                 contact = COALESCE($3, contact),
+                 email = COALESCE($4, email)
+             WHERE student_profile_id = $5`,
+            [
+              profile.parent_info.father_name,
+              profile.parent_info.mother_name,
+              profile.parent_info.contact,
+              profile.parent_info.email,
+              profileId
+            ]
+          );
+        } else {
+          await client.query(
+            `INSERT INTO parent_info 
+             (student_profile_id, father_name, mother_name, contact, email)
+             VALUES ($1, $2, $3, $4, $5)`,
+            [
+              profileId,
+              profile.parent_info.father_name,
+              profile.parent_info.mother_name,
+              profile.parent_info.contact,
+              profile.parent_info.email
+            ]
+          );
+        }
+      }
+
+      // Update addresses
+      if (profile.addresses && Array.isArray(profile.addresses)) {
+        for (const address of profile.addresses) {
+          if (!address.address_type || !['temporary', 'permanent'].includes(address.address_type)) {
+            continue;
+          }
+
+          const addressResult = await client.query(
+            'SELECT * FROM addresses WHERE student_profile_id = $1 AND address_type = $2',
+            [profileId, address.address_type]
+          );
+
+          if (addressResult.rows.length > 0) {
+            await client.query(
+              `UPDATE addresses 
+               SET street = COALESCE($1, street),
+                   city = COALESCE($2, city),
+                   state = COALESCE($3, state),
+                   zip_code = COALESCE($4, zip_code),
+                   country = COALESCE($5, country)
+               WHERE student_profile_id = $6 AND address_type = $7`,
+              [
+                address.street,
+                address.city,
+                address.state,
+                address.zip_code,
+                address.country,
+                profileId,
+                address.address_type
+              ]
+            );
+          } else {
+            await client.query(
+              `INSERT INTO addresses 
+               (student_profile_id, address_type, street, city, state, zip_code, country)
+               VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+              [
+                profileId,
+                address.address_type,
+                address.street,
+                address.city,
+                address.state,
+                address.zip_code,
+                address.country
+              ]
+            );
+          }
+        }
+      }
+
+      // Update academic records
+      if (profile.academic_records && Array.isArray(profile.academic_records)) {
+        // First, delete all existing academic records for this profile
+        await client.query(
+          'DELETE FROM academic_records WHERE student_profile_id = $1',
+          [profileId]
+        );
+
+        // Then insert all the new/updated records
+        for (const record of profile.academic_records) {
+          if (!record.degree || !record.institution || !record.year || !record.grade) {
+            continue; // Skip invalid records
+          }
+
+          await client.query(
+            `INSERT INTO academic_records 
+             (student_profile_id, degree, institution, year, grade)
+             VALUES ($1, $2, $3, $4, $5)`,
+            [
+              profileId,
+              record.degree,
+              record.institution,
+              record.year,
+              record.grade
+            ]
+          );
+        }
+      }
+
+      await client.query('COMMIT');
+
+      // Fetch and return the updated profile
+      const updatedProfile = await client.query(
+        `SELECT p.*, pi.*, 
+                array_agg(DISTINCT jsonb_build_object(
+                  'address_type', a.address_type,
+                  'street', a.street,
+                  'city', a.city,
+                  'state', a.state,
+                  'zip_code', a.zip_code,
+                  'country', a.country
+                )) FILTER (WHERE a.address_type IS NOT NULL) as addresses,
+                array_agg(DISTINCT jsonb_build_object(
+                  'degree', ar.degree,
+                  'institution', ar.institution,
+                  'year', ar.year,
+                  'grade', ar.grade
+                )) FILTER (WHERE ar.degree IS NOT NULL) as academic_records,
+                array_agg(DISTINCT jsonb_build_object(
+                  'hobby_name', h.hobby_name
+                )) FILTER (WHERE h.hobby_name IS NOT NULL) as hobbies
+         FROM student_profiles p
+         LEFT JOIN parent_info pi ON p.profile_id = pi.student_profile_id
+         LEFT JOIN addresses a ON p.profile_id = a.student_profile_id
+         LEFT JOIN academic_records ar ON p.profile_id = ar.student_profile_id
+         LEFT JOIN hobbies h ON p.profile_id = h.student_profile_id
+         WHERE p.profile_id = $1
+         GROUP BY p.profile_id, pi.parent_id`,
+        [profileId]
+      );
+
+      console.log('Updated profile:', updatedProfile.rows[0]);  // Debug log
+      res.json(updatedProfile.rows[0]);
+    } catch (err) {
+      console.error('Database operation error:', err);
+      throw new Error('Failed to update profile: ' + err.message);
+    }
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Error updating profile:', err);
+    res.status(500).json({ 
+      message: err.message || 'Failed to update profile',
+      error: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
+  } finally {
+    client.release();
+  }
+});
+
+// Routes
+app.use('/api/mooc-certificates', require('./routes/moocCertificates'));
 
 // Start the server
 const PORT = process.env.PORT || 5000;

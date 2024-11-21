@@ -10,7 +10,20 @@ const useStorage = () => {
   const uploadFile = (file) => {
     if (!file) return;
 
-    const storageRef = ref(storage, `profile-pictures/${file.name}`);
+    // Check file size (2MB limit)
+    const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+    if (file.size > maxSize) {
+      setError('File size exceeds 2MB limit');
+      return Promise.reject(new Error('File size exceeds 2MB limit'));
+    }
+
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      setError('Only image files are allowed');
+      return Promise.reject(new Error('Only image files are allowed'));
+    }
+
+    const storageRef = ref(storage, `profile-pictures/${Date.now()}_${file.name}`);
     const uploadTask = uploadBytesResumable(storageRef, file);
 
     return new Promise((resolve, reject) => {
@@ -21,13 +34,19 @@ const useStorage = () => {
           setProgress(percentage);
         },
         (error) => {
-          setError(error);
+          setError(error.message);
           reject(error);
         },
         async () => {
-          const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
-          setUrl(downloadUrl);
-          resolve(downloadUrl);
+          try {
+            const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+            setUrl(downloadUrl);
+            setError(null);
+            resolve(downloadUrl);
+          } catch (err) {
+            setError('Failed to get download URL');
+            reject(err);
+          }
         }
       );
     });
