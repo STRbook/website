@@ -125,10 +125,10 @@ const StudentProfile = () => {
     }
     
     // Phone validation with international format support
-    const phoneRegex = /^\+?[\d\s-]{10,}$/;
-    if (formData.phone && !phoneRegex.test(formData.phone.trim())) {
-      errors.push('Please enter a valid phone number (at least 10 digits, can include +, spaces, or hyphens)');
-    }
+    //const phoneRegex = /^\+?[\d\s-]{10,}$/;
+    //if (formData.phone && !phoneRegex.test(formData.phone.trim())) {
+    //  errors.push('Please enter a valid phone number (at least 10 digits, can include +, spaces, or hyphens)');
+    //}
 
     // Parent Information (nullable in DB, but required in form for completeness)
     if (!formData.parent_info.father_name?.trim()) errors.push('Father\'s name is required');
@@ -138,21 +138,21 @@ const StudentProfile = () => {
     if (formData.parent_info.email && !emailRegex.test(formData.parent_info.email)) {
       errors.push('Please enter a valid parent email address');
     }
-    if (formData.parent_info.contact && !phoneRegex.test(formData.parent_info.contact.trim())) {
-      errors.push('Please enter a valid parent contact number');
-    }
+    //if (formData.parent_info.contact && !phoneRegex.test(formData.parent_info.contact.trim())) {
+     // errors.push('Please enter a valid parent contact number');
+    //}
 
     // Address Validation (nullable in DB, but required in form for completeness)
-    const validateAddress = (address, prefix) => {
-      if (!address.street?.trim()) errors.push(`${prefix} street is required`);
-      if (!address.city?.trim()) errors.push(`${prefix} city is required`);
-      if (!address.state?.trim()) errors.push(`${prefix} state is required`);
-      if (!address.zip_code?.trim()) errors.push(`${prefix} postal code is required`);
-      if (!address.country?.trim()) errors.push(`${prefix} country is required`);
-    };
+    //const validateAddress = (address, prefix) => {
+     // if (!address.street?.trim()) errors.push(`${prefix} street is required`);
+     // if (!address.city?.trim()) errors.push(`${prefix} city is required`);
+     // if (!address.state?.trim()) errors.push(`${prefix} state is required`);
+      //if (!address.zip_code?.trim()) errors.push(`${prefix} postal code is required`);
+     // if (!address.country?.trim()) errors.push(`${prefix} country is required`);
+    //};
 
-    validateAddress(formData.permanent_address, 'Permanent address');
-    validateAddress(formData.current_address, 'Current address');
+    //validateAddress(formData.permanent_address, 'Permanent address');
+    //validateAddress(formData.current_address, 'Current address');
 
     // Academic Records (required in DB)
     if (!Array.isArray(formData.academic_records) || formData.academic_records.length === 0) {
@@ -545,7 +545,7 @@ const StudentProfile = () => {
       <h2>Parent Information</h2>
       <div className="form-row">
         <div className="form-field">
-          <label>Father's Name</label>
+          <label>Father&apos;s Name</label>
           <input
             type="text"
             name="father_name"
@@ -555,7 +555,7 @@ const StudentProfile = () => {
           />
         </div>
         <div className="form-field">
-          <label>Mother's Name</label>
+          <label>Mother&apos;s Name</label>
           <input
             type="text"
             name="mother_name"
@@ -567,7 +567,7 @@ const StudentProfile = () => {
       </div>
       <div className="form-row">
         <div className="form-field">
-          <label>Parent's Contact</label>
+          <label>Parent&apos;s Contact</label>
           <input
             type="tel"
             name="contact"
@@ -577,7 +577,7 @@ const StudentProfile = () => {
           />
         </div>
         <div className="form-field">
-          <label>Parent's Email</label>
+          <label>Parent&apos;s Email</label>
           <input
             type="email"
             name="email"

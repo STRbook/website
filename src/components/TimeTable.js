@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Header from './Header';
 import Footer from './Footer';
+import Announcements from './Announcements';
+import { Container } from '@mui/material';
 import './TimeTable.css';
 
 const TimeTable = () => {
@@ -285,25 +287,9 @@ const TimeTable = () => {
             </div>
           </div>
         )}
-
-        <div className="timetable-legend">
-          <div className="legend-item">
-            <div className="legend-color regular-class"></div>
-            <span>Regular Class</span>
-          </div>
-          <div className="legend-item">
-            <div className="legend-color lab-class"></div>
-            <span>Lab</span>
-          </div>
-          <div className="legend-item">
-            <div className="legend-color break-time"></div>
-            <span>Break</span>
-          </div>
-          <div className="legend-item">
-            <div className="legend-color lunch-time"></div>
-            <span>Lunch</span>
-          </div>
-        </div>
+        <Container maxWidth="lg">
+          <Announcements />
+        </Container>
       </div>
       <Footer />
     </div>
