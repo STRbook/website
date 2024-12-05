@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Icon } from 'react-icons-kit';
 import { eyeOff } from 'react-icons-kit/feather/eyeOff';
 import { eye } from 'react-icons-kit/feather/eye';
+import { Link } from 'react-router-dom';
 
 import './Login.css';
 
@@ -113,9 +114,7 @@ const Login = () => {
                         <p>
                             <a href="/forgot-password">Forgot Password?</a>
                         </p>
-                        <p>
-                            Don't have an account? <a href="/register">Register</a>
-                        </p>
+                        <p>Don&apos;t have an account? <Link to="/register">Register here</Link></p>
                     </>
                 )}
             </div>

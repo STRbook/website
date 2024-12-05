@@ -50,17 +50,11 @@ const ViewProfile = () => {
 
         if (data.profile_picture_url) {
           try {
-            const url = new URL(data.profile_picture_url);
-            setProfilePicUrl(data.profile_picture_url);
-          } catch (error) {
-            try {
-              const storage = getStorage();
-              const imageRef = ref(storage, data.profile_picture_url);
-              const downloadUrl = await getDownloadURL(imageRef);
-              setProfilePicUrl(downloadUrl);
-            } catch (firebaseError) {
-              setProfilePicUrl('/default-profile.png');
-            }
+            const storage = getStorage();
+            const downloadUrl = await getDownloadURL(ref(storage, data.profile_picture_url));
+            setProfilePicUrl(downloadUrl);
+          } catch (firebaseError) {
+            setProfilePicUrl('/default-profile.png');
           }
         } else {
           setProfilePicUrl('/default-profile.png');

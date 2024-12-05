@@ -56,6 +56,7 @@ const Header = ({ userType }) => {
             <>
               <Link to="/timetable">Timetable</Link>
               <Link to="/mooc">Mooc</Link>
+              <Link to="/events">Events</Link>
               <Link to="/view-profile" className="student-name">
                 {studentName || 'Profile'}
               </Link>

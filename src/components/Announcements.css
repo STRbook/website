@@ -1,0 +1,95 @@
+.announcements-container {
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin: 20px 0;
+}
+
+.announcements-container h2 {
+  font-size: 1.5rem;
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.announcements-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.announcement-item {
+  background-color: white;
+  border-radius: 6px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  border: 1px solid #e9ecef;
+}
+
+.announcement-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.announcement-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.importance-indicator {
+  font-size: 1rem;
+}
+
+.announcement-date {
+  font-size: 0.85rem;
+}
+
+.announcement-content {
+  color: #2c3e50;
+  line-height: 1.5;
+}
+
+.unread-indicator {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background-color: #007bff;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  animation: pulse 2s infinite;
+}
+
+.announcement-item.read {
+  opacity: 0.8;
+}
+
+.no-announcements {
+  text-align: center;
+  padding: 2rem;
+  color: #6c757d;
+  background-color: white;
+  border-radius: 6px;
+  border: 1px dashed #dee2e6;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

@@ -8,6 +8,7 @@ import StudentProfile from './components/StudentProfile';
 import ViewProfile from './components/ViewProfile';
 import TimeTable from './components/TimeTable';
 import StudentMooc from './components/StudentMooc';
+import Events from './components/Events';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 import './index.css';
@@ -54,6 +55,14 @@ const App = () => {
         element={
           <ProtectedRoute>
             <TimeTable />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/events" 
+        element={
+          <ProtectedRoute>
+            <Events />
           </ProtectedRoute>
         } 
       />

@@ -34,25 +34,17 @@ const TeacherDashboard = () => {
     document.title = "Teacher";
   }, []);
 
-
-  const fetchStudents = (selectedClass) => {
-
-
+  const fetchStudents = () => {
+    // For now using sample data
     setStudents(sampleStudentsData);
   };
 
-
   const handleClassSelect = (e) => {
-
-    const selectedClass = e.target.value;
-    setSelectedClass(selectedClass);
-    fetchStudents(selectedClass);
+    setSelectedClass(e.target.value);
+    fetchStudents();
   };
 
-
   const viewCertificate = (studentId) => {
-
-
     console.log(`View certificate for student with id: ${studentId}`);
   };
 
@@ -61,7 +53,7 @@ const TeacherDashboard = () => {
       <Header userType="teacher" />
       <main className="dashboard-content">
         <h2>Welcome, Teacher</h2>
-        <p>View and manage students' MOOC completion certificates.</p>
+        <p>View and manage students&apos; MOOC completion certificates.</p>
 
         <select onChange={handleClassSelect} value={selectedClass}>
           <option value="">Select Class</option>
@@ -70,7 +62,6 @@ const TeacherDashboard = () => {
           <option value="class2">Class 2</option>
 
         </select>
-
 
         <table className="mooc-certificates-table">
           <thead>

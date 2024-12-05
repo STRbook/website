@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Header from './Header';
 import Footer from './Footer';
-import Announcements from './Announcements';
 import { Container } from '@mui/material';
 import './TimeTable.css';
+import Announcements from './Announcements';
 
 const TimeTable = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -288,10 +288,12 @@ const TimeTable = () => {
           </div>
         )}
         <Container maxWidth="lg">
-          <Announcements />
         </Container>
       </div>
-      <Footer />
+      <>
+        <Announcements />
+        <Footer />
+      </>
     </div>
   );
 };
