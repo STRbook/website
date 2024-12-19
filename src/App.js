@@ -77,7 +77,7 @@ const App = () => {
         } 
       />
       <Route 
-        path="/gpa-calculator" 
+        path="/cgpa-calculator" 
         element={
           <ProtectedRoute>
             <VTUCalculator />
