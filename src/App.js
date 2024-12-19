@@ -11,6 +11,7 @@ import StudentMooc from './components/StudentMooc';
 import StudentProjects from './components/StudentProjects';
 import Events from './components/Events';
 import ProtectedRoute from './components/ProtectedRoute';
+import VTUCalculator from './components/VTUCalculator';
 import './App.css';
 import './index.css';
 
@@ -72,6 +73,14 @@ const App = () => {
         element={
           <ProtectedRoute>
             <Events />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/gpa-calculator" 
+        element={
+          <ProtectedRoute>
+            <VTUCalculator />
           </ProtectedRoute>
         } 
       />
