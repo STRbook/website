@@ -114,9 +114,9 @@ const TimeTable = () => {
               {"time": "10:20 - 11:20 AM", "subject": "TYL APTI"},
               {"time": "11:20 - 12:20 PM", "subject": "RM"},
               {"time": "12:20 - 01:00 PM", "subject": "Lunch Break"},
-              {"time": "01:00 - 02:00 PM", "subject": "Events"},
-              {"time": "02:00 - 03:00 PM", "subject": "Events"},
-              {"time": "03:00 - 04:00 PM", "subject": "Events"}
+              {"time": "01:00 - 02:00 PM", "subject": "TOC"},
+              {"time": "02:00 - 03:00 PM", "subject": "AI"},
+              {"time": "03:00 - 04:00 PM", "subject": "EVS"}
             ]
           },
           {

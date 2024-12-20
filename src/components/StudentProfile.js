@@ -188,61 +188,50 @@ const StudentProfile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate form before submission
+    // Validate form before submission 
     const validationErrors = validateForm();
     if (validationErrors.length > 0) {
-      console.error('Validation errors:', validationErrors);
-      // You might want to add a state for errors and display them in the UI
       alert(validationErrors.join('\n'));
       return;
     }
 
     try {
-      const student_id = localStorage.getItem('student_id');
+      const studentId = localStorage.getItem('student_id');
       const token = localStorage.getItem('token');
 
-      if (!student_id || !token) {
-        console.error('Missing student_id or token');
+      if (!studentId || !token) {
+        console.error('Missing authentication credentials');
         navigate('/login');
         return;
       }
 
-      // Transform the data to match backend's expected format
       const payload = {
-        studentId: student_id, // backend expects studentId, not student_id
+        studentId: parseInt(studentId), // Ensure studentId is a number
         first_name: formData.first_name,
         last_name: formData.last_name,
         dob: formData.dob,
         phone: formData.phone,
         email: formData.email,
         profile_picture_url: formData.profile_picture_url,
-        // Transform parent info
-        father_name: formData.parent_info.father_name,
-        mother_name: formData.parent_info.mother_name,
-        parent_contact: formData.parent_info.contact,
-        parent_email: formData.parent_info.email,
-        // Transform addresses
-        permanent_address: {
-          street: formData.permanent_address.street,
-          city: formData.permanent_address.city,
-          state: formData.permanent_address.state,
-          zip_code: formData.permanent_address.postal_code,
-          country: formData.permanent_address.country
+        parent_info: {
+          father_name: formData.parent_info.father_name,
+          mother_name: formData.parent_info.mother_name,
+          contact: formData.parent_info.contact,
+          email: formData.parent_info.email
         },
-        temporary_address: {
-          street: formData.current_address.street,
-          city: formData.current_address.city,
-          state: formData.current_address.state,
-          zip_code: formData.current_address.postal_code,
-          country: formData.current_address.country
-        },
+        addresses: [
+          {
+            address_type: 'temporary',
+            ...formData.current_address
+          },
+          {
+            address_type: 'permanent',
+            ...formData.permanent_address
+          }
+        ],
         academic_records: formData.academic_records,
-        hobbies: formData.hobbies,
-        siblings: [] // Add if needed
+        hobbies: formData.hobbies
       };
-
-      // Log the data being sent
-      console.log('Submitting profile data:', payload);
 
       const response = await fetch(API_ENDPOINTS.STUDENT_PROFILE, {
         method: 'POST',
@@ -253,47 +242,22 @@ const StudentProfile = () => {
         body: JSON.stringify(payload)
       });
 
-      // Try to get response data, but handle cases where response might not be JSON
-      let responseData;
-      try {
-        responseData = await response.json();
-      } catch (e) {
-        responseData = { message: 'Failed to parse server response' };
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('student_id');
+          navigate('/login');
+          return;
+        }
+        throw new Error(await response.text());
       }
 
-      console.log('Server response:', {
-        status: response.status,
-        data: responseData
-      });
-
-      if (response.status === 401) {
-        console.error('Authentication failed - redirecting to login');
-        localStorage.removeItem('token');
-        localStorage.removeItem('student_id');
-        navigate('/login');
-        return;
-      }
-
-      if (response.ok) {
-        console.log('Profile saved successfully');
-        // Show success message before redirecting
-        alert('Profile saved successfully!');
-        navigate('/student-dashboard');
-      } else {
-        console.error('Failed to save profile:', {
-          status: response.status,
-          error: responseData
-        });
-        // Show error message to user
-        alert(responseData.message || 'Failed to save profile. Please try again.');
-      }
+      alert('Profile saved successfully!');
+      navigate('/view-profile');
+      
     } catch (error) {
-      console.error('Error saving profile:', {
-        message: error.message,
-        error
-      });
-      // Show error message to user
-      alert('An error occurred while saving your profile. Please try again.');
+      console.error('Failed to save profile:', error);
+      alert('Error saving profile. Please try again.');
     }
   };
 
