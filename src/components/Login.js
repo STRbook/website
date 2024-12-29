@@ -19,57 +19,43 @@ const Login = () => {
     const [icon, setIcon] = useState(eyeOff);
     const navigate = useNavigate();
 
-    const handleLogin = async () => {
-        if (!email || !password) {
-            setError('Email and Password are required');
-            return;
-        }
-        
-        // Basic email validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            setError('Please enter a valid email address');
-            return;
-        }
-
-        setError('');
+    const handleLogin = async (e) => {
+        e.preventDefault();
         setLoading(true);
+        setError('');
+        console.log('Login attempt:', { email });
 
         try {
-            console.log('Attempting login with:', { email });
             const response = await fetch('http://localhost:5000/api/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ 
+                    email: email.trim().toLowerCase(),
+                    password 
+                }),
+                credentials: 'include'
             });
 
             const data = await response.json();
-            console.log('Login response:', { status: response.status, data });
+            console.log('Server response:', data);
 
             if (!response.ok) {
                 throw new Error(data.message || 'Login failed');
             }
 
-            // Store token in localStorage
             localStorage.setItem('token', data.token);
             localStorage.setItem('student_id', data.student.student_id);
-            console.log('Login successful, stored token and student_id');
+            localStorage.setItem('is_first_login', data.student.is_first_login);
 
-            setLoading(false);
+            console.log('Navigation triggered:', data.student.is_first_login ? '/student-profile' : '/timetable');
+            navigate(data.student.is_first_login ? '/student-profile' : '/timetable', { replace: true });
 
-            // Redirect based on first login status
-            if (data.student.is_first_login) {
-                console.log('Redirecting to profile (first login)');
-                navigate('/student-profile');
-            } else {
-                console.log('Redirecting to timetable');
-                navigate('/timetable');
-            }
         } catch (err) {
             console.error('Login error:', err);
             setError(err.message);
+        } finally {
             setLoading(false);
         }
     };
@@ -92,7 +78,7 @@ const Login = () => {
                 {loading ? (
                     <div className="spinner"></div>
                 ) : (
-                    <>
+                    <form onSubmit={handleLogin}>
                         <input
                             type="email"
                             placeholder="Email"
@@ -110,12 +96,14 @@ const Login = () => {
                                 <Icon icon={icon} size={20} />
                             </span>
                         </div>
-                        <button onClick={handleLogin}>Login</button>
+                        <button type="submit" disabled={loading}>
+                            {loading ? 'Logging in...' : 'Login'}
+                        </button>
                         <p>
                             <a href="/forgot-password">Forgot Password?</a>
                         </p>
                         <p>Don&apos;t have an account? <Link to="/register">Register here</Link></p>
-                    </>
+                    </form>
                 )}
             </div>
         </div>

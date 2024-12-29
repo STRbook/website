@@ -161,51 +161,44 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
 
-  console.log('Login request received for email:', email);
-
   try {
+    // Add logging to debug
+    console.log('Login attempt:', { email });
+    
     // Check if user exists
-    const result = await pool.query('SELECT * FROM students WHERE email = $1', [email]);
+    const result = await pool.query(
+      'SELECT * FROM students WHERE email = $1', 
+      [email.toLowerCase()] // Convert email to lowercase for consistency
+    );
     
     if (result.rows.length === 0) {
-      console.log('User not found');
+      console.log('User not found:', email);
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
     const student = result.rows[0];
-    console.log('Found student:', { id: student.student_id, email: student.email });
+    
+    // Add logging to debug password check
+    console.log('Found student:', { id: student.student_id });
     
     // Verify password
     const validPassword = await bcrypt.compare(password, student.password_hash);
-    
+    console.log('Password validation:', { valid: validPassword });
+
     if (!validPassword) {
-      console.log('Invalid password');
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // Generate JWT token with student_id
+    // Generate token
     const token = jwt.sign(
       { 
         student_id: student.student_id,
         email: student.email 
-      }, 
-      JWT_SECRET,
+      },
+      process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '24h' }
     );
 
-    console.log('Generated token for student:', { 
-      id: student.student_id, 
-      email: student.email,
-      tokenLength: token.length 
-    });
-    
-    // Update last login
-    await pool.query(
-      'UPDATE students SET last_login = CURRENT_TIMESTAMP WHERE student_id = $1',
-      [student.student_id]
-    );
-
-    // Send response
     res.json({
       token,
       student: {
@@ -214,6 +207,7 @@ app.post('/api/login', async (req, res) => {
         is_first_login: student.is_first_login
       }
     });
+
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ message: 'Server error during login' });
@@ -890,3 +884,68 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+const express = require('express');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const router = express.Router();
+
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+  console.log('Login request:', { email });
+
+  try {
+    // Check if user exists
+    const user = await pool.query(
+      'SELECT * FROM students WHERE email = $1',
+      [email.toLowerCase()]
+    );
+
+    if (user.rows.length === 0) {
+      console.log('User not found');
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    const student = user.rows[0];
+    console.log('Found student:', { id: student.student_id });
+
+    // Verify password
+    const validPassword = await bcrypt.compare(password, student.password_hash);
+    console.log('Password validation:', { valid: validPassword });
+
+    if (!validPassword) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    // Generate token
+    const token = jwt.sign(
+      { student_id: student.student_id },
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    res.json({
+      token,
+      student: {
+        student_id: student.student_id,
+        email: student.email,
+        is_first_login: student.is_first_login
+      }
+    });
+
+  } catch (err) {
+    console.error('Login error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
