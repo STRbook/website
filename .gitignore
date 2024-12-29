@@ -23,3 +23,6 @@ yarn-error.log*
 # Miscellaneous
 .DS_Store
 node_modules
+
+all_databases_backup.sql
+backup_file.dump
