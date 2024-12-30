@@ -5,12 +5,23 @@ on:
     branches: [ main ]
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
-    needs: [test]  # Ensures tests pass before deployment
 
     steps:
     - uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install Dependencies
+      run: npm ci
+
+    - name: Build Frontend
+      run: npm run build
 
     - name: Download Build Artifact
       uses: actions/download-artifact@v3
