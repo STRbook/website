@@ -18,16 +18,12 @@ jobs:
         cache: 'npm'
 
     - name: Install Dependencies
-      run: npm ci
+      run: |
+        npm ci
+        cd backend && npm ci
 
     - name: Build Frontend
       run: npm run build
-
-    - name: Download Build Artifact
-      uses: actions/download-artifact@v3
-      with:
-        name: build
-        path: build
 
     # Add environment variables
     - name: Create .env file
