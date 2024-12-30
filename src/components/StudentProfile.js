@@ -206,7 +206,7 @@ const StudentProfile = () => {
       }
 
       const payload = {
-        studentId: parseInt(studentId), // Ensure studentId is a number
+        studentId: parseInt(studentId),
         first_name: formData.first_name,
         last_name: formData.last_name,
         dob: formData.dob,
@@ -219,18 +219,24 @@ const StudentProfile = () => {
           contact: formData.parent_info.contact,
           email: formData.parent_info.email
         },
-        addresses: [
-          {
-            address_type: 'temporary',
-            ...formData.current_address
-          },
-          {
-            address_type: 'permanent',
-            ...formData.permanent_address
-          }
-        ],
+        // Fix the address structure
+        permanent_address: {
+          street: formData.permanent_address.street,
+          city: formData.permanent_address.city,
+          state: formData.permanent_address.state,
+          zip_code: formData.permanent_address.postal_code, // Note the field name change
+          country: formData.permanent_address.country
+        },
+        temporary_address: {  // Add temporary address
+          street: formData.current_address.street,
+          city: formData.current_address.city,
+          state: formData.current_address.state,
+          zip_code: formData.current_address.postal_code, // Note the field name change
+          country: formData.current_address.country
+        },
         academic_records: formData.academic_records,
-        hobbies: formData.hobbies
+        hobbies: formData.hobbies,
+        siblings: [] // Add empty siblings array if not using it
       };
 
       const response = await fetch(API_ENDPOINTS.STUDENT_PROFILE, {
