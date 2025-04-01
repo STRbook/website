@@ -170,3 +170,27 @@ CREATE INDEX IF NOT EXISTS idx_mooc_certificates_student_profile_id ON mooc_cert
 CREATE INDEX IF NOT EXISTS idx_parent_info_student_profile_id ON parent_info(student_profile_id);
 CREATE INDEX IF NOT EXISTS idx_sibling_info_student_profile_id ON sibling_info(student_profile_id);
 CREATE INDEX IF NOT EXISTS idx_student_projects_student_id ON student_projects(student_id); -- Add index for projects FK
+
+-- === Appended content from 002_add_teachers_and_roles.sql ===
+
+-- Add teachers table
+CREATE TABLE IF NOT EXISTS teachers (
+    teacher_id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
+    role VARCHAR(10) NOT NULL DEFAULT 'teacher', -- Add role column with default
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Add role column to students table if it doesn't exist
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='students' AND column_name='role') THEN
+        ALTER TABLE students ADD COLUMN role VARCHAR(10) NOT NULL DEFAULT 'student';
+    END IF;
+END $$;
+
+-- Optional: Add an index on teacher email for faster lookups
+CREATE INDEX IF NOT EXISTS idx_teachers_email ON teachers(email);

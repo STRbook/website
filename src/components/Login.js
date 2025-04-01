@@ -4,6 +4,7 @@ import { Icon } from 'react-icons-kit';
 import { eyeOff } from 'react-icons-kit/feather/eyeOff';
 import { eye } from 'react-icons-kit/feather/eye';
 import { Link } from 'react-router-dom';
+import { API_ENDPOINTS } from '../config/api'; // Import API endpoints
 
 import './Login.css';
 
@@ -13,6 +14,7 @@ const Login = () => {
     }, []);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [userRole, setUserRole] = useState('student'); // Add state for user role
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [type, setType] = useState('password');
@@ -24,33 +26,54 @@ const Login = () => {
         setLoading(true);
         setError('');
 
+        // Determine API endpoint based on selected role
+        const loginEndpoint = userRole === 'student' ? API_ENDPOINTS.LOGIN : API_ENDPOINTS.TEACHER_LOGIN;
+
         try {
-            const response = await fetch('http://localhost:5000/api/login', {
+            const response = await fetch(loginEndpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     email: email.trim().toLowerCase(),
-                    password 
+                    password
                 }),
-                credentials: 'include'
+                // credentials: 'include' // Usually not needed with token auth unless dealing with cookies from different domains
             });
 
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.message || 'Login failed');
+                throw new Error(data.message || `Login failed as ${userRole}`);
             }
 
+            // Store token and user info (including role)
             localStorage.setItem('token', data.token);
-            localStorage.setItem('student_id', data.student.student_id);
-            localStorage.setItem('is_first_login', data.student.is_first_login);
+            localStorage.setItem('user', JSON.stringify(data.user)); // Store user object (id, email, role, etc.)
+            // Remove old items if they exist
+            localStorage.removeItem('student_id');
+            localStorage.removeItem('is_first_login');
 
-            navigate(data.student.is_first_login ? '/student-profile' : '/timetable', { replace: true });
+            console.log("Login successful, user data:", data.user); // Log user data
+
+            // Redirect based on role
+            console.log("Checking role for navigation:", data.user.role); // Log role being checked
+            if (data.user.role === 'teacher') {
+                console.log("Navigating to /teacher-dashboard"); // Log navigation attempt
+                navigate('/teacher-dashboard', { replace: true });
+            } else if (data.user.role === 'student') {
+                 console.log("Navigating based on student status"); // Log navigation attempt
+                navigate(data.user.is_first_login ? '/student-profile' : '/timetable', { replace: true });
+            } else {
+                 console.error("Unknown user role:", data.user.role); // Log error
+                setError('Login successful, but user role is unknown.');
+                localStorage.removeItem('token'); // Clear token if role is invalid
+                localStorage.removeItem('user');
+            }
 
         } catch (err) {
-            console.error('Login error:', err);
+            console.error(`Login error as ${userRole}:`, err);
             setError(err.message);
         } finally {
             setLoading(false);
@@ -76,9 +99,34 @@ const Login = () => {
                     <div className="spinner"></div>
                 ) : (
                     <form onSubmit={handleLogin}>
+                        {/* Role Selection */}
+                        <div className="role-selector">
+                            <label>
+                                <input 
+                                    type="radio" 
+                                    name="role" 
+                                    value="student" 
+                                    checked={userRole === 'student'} 
+                                    onChange={(e) => setUserRole(e.target.value)} 
+                                />
+                                Student
+                            </label>
+                            <label>
+                                <input 
+                                    type="radio" 
+                                    name="role" 
+                                    value="teacher" 
+                                    checked={userRole === 'teacher'} 
+                                    onChange={(e) => setUserRole(e.target.value)} 
+                                />
+                                Teacher
+                            </label>
+                        </div>
+
                         <input
                             type="email"
                             placeholder="Email"
+                            required // Add required attribute
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                         />
@@ -86,11 +134,12 @@ const Login = () => {
                             <input
                                 type={type}
                                 placeholder="Password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                            />
-                            <span className="toggle-icon" onClick={handleToggle}>
-                                <Icon icon={icon} size={20} />
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required // Add required attribute
+                        />
+                        <span className="toggle-icon" onClick={handleToggle}>
+                            <Icon icon={icon} size={20} />
                             </span>
                         </div>
                         <button type="submit" disabled={loading}>

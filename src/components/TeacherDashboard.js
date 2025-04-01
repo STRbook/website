@@ -1,108 +1,111 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
 import Header from './Header';
 import Footer from './Footer';
-import './styles/Dashboard.css';
+import { API_ENDPOINTS } from '../config/api'; // Import API endpoints
+import './styles/Dashboard.css'; // Assuming general dashboard styles apply
 
 const TeacherDashboard = () => {
-  const [selectedClass, setSelectedClass] = useState(null);
   const [students, setStudents] = useState([]);
-
-  // sample
-  const sampleStudentsData = [
-    {
-      id: 1,
-      name: "sajal",
-      platform: "Udemy",
-      moocTitle: "Python Basics",
-      startDate: "01-05-2023",
-      completedDate: "25-05-2023",
-      hoursPerWeek: 3
-    },
-    {
-      id: 2,
-      name: "Saj",
-      platform: "Coursera",
-      moocTitle: "C/C++",
-      startDate: "03-09-2023",
-      completedDate: "30-09-2023",
-      hoursPerWeek: 3
-    },
-
-  ];
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate(); // Hook for navigation
 
   useEffect(() => {
-    document.title = "Teacher";
-  }, []);
-
-  const fetchStudents = () => {
-    // For now using sample data
-    setStudents(sampleStudentsData);
-  };
-
-  const handleClassSelect = (e) => {
-    setSelectedClass(e.target.value);
+    document.title = "Teacher Dashboard";
     fetchStudents();
+  }, []); // Fetch students when component mounts
+
+  const fetchStudents = async () => {
+    setIsLoading(true);
+    setError(null);
+    const token = localStorage.getItem('token'); // Retrieve token
+
+    if (!token) {
+      setError('Authentication token not found. Please log in.');
+      setIsLoading(false);
+      // Optional: Redirect to login
+      // navigate('/login'); 
+      return;
+    }
+
+    try {
+      const response = await fetch(API_ENDPOINTS.TEACHER_STUDENTS, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`, // Include token in header
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setStudents(data);
+    } catch (err) {
+      console.error("Failed to fetch students:", err);
+      setError(err.message || 'Failed to fetch student data.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const viewCertificate = (studentId) => {
-    console.log(`View certificate for student with id: ${studentId}`);
+  const handleViewProfile = (studentId) => {
+    // Navigate to the dedicated student profile view route
+    navigate(`/teacher/view-student/${studentId}`); 
   };
 
   return (
     <div className="dashboard-container">
-      <Header userType="teacher" />
+      <Header /> {/* Remove userType prop */}
       <main className="dashboard-content">
-        <h2>Welcome, Teacher</h2>
-        <p>View and manage students&apos; MOOC completion certificates.</p>
+        <h2>Teacher Dashboard</h2>
+        <p>View student records.</p>
 
-        <select onChange={handleClassSelect} value={selectedClass}>
-          <option value="">Select Class</option>
+        {/* Optional: Add filters here later (e.g., by class, year) */}
 
-          <option value="class1">Class 1</option>
-          <option value="class2">Class 2</option>
+        {isLoading && <p>Loading students...</p>}
+        {error && <p className="error-message">Error: {error}</p>}
 
-        </select>
-
-        <table className="mooc-certificates-table">
-          <thead>
-            <tr>
-              <th>Student Name</th>
-              <th>Platform</th>
-              <th>MOOC Title</th>
-              <th>Start Date</th>
-              <th>Completed Date</th>
-              <th>Hours Per Week</th>
-              <th>Action</th>
-              <th>Score</th>
-            </tr>
-          </thead>
-          <tbody>
-            {students.map((student, index) => (
-              <tr key={index}>
-                <td>{student.name}</td>
-                <td>{student.platform}</td>
-                <td>{student.moocTitle}</td>
-                <td>{student.startDate}</td>
-                <td>{student.completedDate}</td>
-                <td>{student.hoursPerWeek}</td>
-                <td>
-
-                  <button onClick={() => viewCertificate(student.id)}>View Certificate</button>
-                </td>
-                <td>
-
-                  <select>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                  </select>
-                </td>
+        {!isLoading && !error && (
+          <table className="students-table"> {/* Use a more generic class name */}
+            <thead>
+              <tr>
+                <th>Student ID</th>
+                <th>Name</th>
+                <th>USN</th>
+                <th>Email</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {students.length > 0 ? (
+                students.map((student) => (
+                  <tr key={student.student_id}>
+                    <td>{student.student_id}</td>
+                    {/* Combine first and last name, handle cases where they might be empty */}
+                    <td>{`${student.first_name || ''} ${student.last_name || ''}`.trim() || 'N/A'}</td>
+                    <td>{student.usn || 'N/A'}</td>
+                    <td>{student.email}</td>
+                    <td>
+                      <button onClick={() => handleViewProfile(student.student_id)}>
+                        View Profile
+                      </button>
+                      {/* Add other actions later if needed */}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5">No students found.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
       </main>
       <Footer />
     </div>

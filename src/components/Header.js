@@ -3,45 +3,47 @@ import { Link, useNavigate } from 'react-router-dom';
 import './styles/Header.css';
 import logo from '../assets/logo.png';
 
-const Header = ({ userType }) => {
+const Header = () => { // Remove userType prop
   const navigate = useNavigate();
-  const [studentName, setStudentName] = useState('');
+  const [user, setUser] = useState(null); // State to hold user object
 
   useEffect(() => {
-    const fetchStudentName = async () => {
+    // Read user info from localStorage on component mount
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
       try {
-        const student_id = localStorage.getItem('student_id');
-        const token = localStorage.getItem('token');
-
-        if (!student_id || !token) return;
-
-        const response = await fetch(`http://localhost:5000/api/student-profile/${student_id}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data.first_name && data.last_name) {
-            setStudentName(`${data.first_name} ${data.last_name}`);
-          }
-        }
+        setUser(JSON.parse(storedUser));
       } catch (error) {
-        console.error('Error fetching student name:', error);
+        console.error("Failed to parse user data from localStorage", error);
+        // Clear potentially corrupted data and redirect to login
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        navigate('/login');
       }
-    };
-
-    if (userType === 'student') {
-      fetchStudentName();
+    } else {
+      // If no user data, ensure token is also cleared and potentially redirect
+      const token = localStorage.getItem('token');
+      if (token) {
+         // If there's a token but no user data, something is inconsistent
+         localStorage.removeItem('token'); 
+      }
+      // Optional: redirect to login if no user data found in a protected area
+      // navigate('/login'); 
     }
-  }, [userType]);
+  }, [navigate]); // Add navigate to dependency array
 
   const handleLogout = () => {
+    // Clear user data and token, then navigate to login
     localStorage.removeItem('token');
-    localStorage.removeItem('student_id');
+    localStorage.removeItem('user'); 
+    setUser(null); // Clear user state
     navigate('/login');
   };
+
+  // Determine display name
+  const displayName = user 
+    ? `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email // Fallback to email if name is missing
+    : 'Profile';
 
   return (
     <header className="header">
@@ -52,24 +54,38 @@ const Header = ({ userType }) => {
           </Link>
         </div>
         <nav className="nav-links">
-          {userType === 'student' && (
+          {/* Render links based on user role */}
+          {user?.role === 'student' && (
             <>
               <Link to="/timetable">Timetable</Link>
               <Link to="/mooc">Mooc</Link>
               <Link to="/projects">Projects</Link>
               <Link to="/events">Events</Link>
               <Link to="/cgpa-calculator">SGPA Calculator</Link>
-              <Link to="/view-profile" className="student-name">
-                {studentName || 'Profile'}
+              {/* Link to student's own profile view */}
+              <Link to="/view-profile" className="user-name"> 
+                {displayName}
               </Link>
             </>
           )}
-          {userType === 'teacher' && (
+          {user?.role === 'teacher' && (
             <>
               <Link to="/teacher-dashboard">Dashboard</Link>
+              {/* Maybe add a profile link for teachers later */}
+               <span className="user-name">{displayName}</span> 
             </>
           )}
-          <button onClick={handleLogout} className="logout-btn">Logout</button>
+          {/* Show logout button only if user is logged in */}
+          {user && (
+             <button onClick={handleLogout} className="logout-btn">Logout</button>
+          )}
+          {/* Optionally show Login/Register if no user */}
+          {!user && (
+            <>
+              <Link to="/login">Login</Link>
+              <Link to="/register">Register</Link>
+            </>
+          )}
         </nav>
       </div>
     </header>

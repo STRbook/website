@@ -8,6 +8,7 @@ const jwt = require('jsonwebtoken');
 const moocCertificatesRouter = require('./routes/moocCertificates');
 const { router: studentProfileRouter, setPool: setStudentProfilePool } = require('./routes/studentProfile'); // Import the student profile router and its pool setter
 const { router: projectsRouter, setPool: setProjectsPool } = require('./routes/projects'); // Import the projects router and its pool setter
+const { router: teacherRouter, setPool: setTeacherPool } = require('./routes/teacher'); // Import the teacher router and its pool setter
 // Removed unused authenticateToken import
 
 const app = express();
@@ -44,6 +45,7 @@ pool.query('SELECT NOW()', (err, res) => {
 // Inject the pool into the routers
 setStudentProfilePool(pool);
 setProjectsPool(pool); // Inject pool into projects router
+setTeacherPool(pool); // Inject pool into teacher router
 
 // Removed redundant authenticateToken function definition
 
@@ -144,10 +146,14 @@ app.post('/api/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
+    // Ensure the role column exists and has a value, default to 'student' if missing for some reason
+    const userRole = student.role || 'student'; 
+    
     const token = jwt.sign(
       { 
-        student_id: student.student_id,
-        email: student.email 
+        id: student.student_id, // Use 'id' for consistency with teacher token
+        email: student.email,
+        role: userRole // Include the role
       },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '24h' }
@@ -155,10 +161,12 @@ app.post('/api/login', async (req, res) => {
 
     res.json({
       token,
-      student: {
-        student_id: student.student_id,
+      user: { // Rename 'student' to 'user' for consistency
+        id: student.student_id,
         email: student.email,
+        role: userRole, // Include role in response body
         is_first_login: student.is_first_login
+        // Add first/last name if needed (requires joining student_profiles)
       }
     });
 
@@ -172,6 +180,7 @@ app.post('/api/login', async (req, res) => {
 app.use('/api/student-profile', studentProfileRouter);
 app.use('/api/mooc-certificates', moocCertificatesRouter);
 app.use('/api/projects', projectsRouter); // Mount the projects router
+app.use('/api/teacher', teacherRouter); // Mount the teacher router
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

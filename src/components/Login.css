@@ -64,7 +64,30 @@
 
 .form-container p {
     margin-bottom: 10px;
-    color: #fff;
+    color: red;
+}
+
+/* Styles for Role Selector */
+.role-selector {
+    display: flex; /* Arrange labels side-by-side */
+    justify-content: center; /* Center the radio buttons */
+    margin-bottom: 15px; /* Space below the selector */
+    width: 100%; /* Take full width */
+    color: #fff; /* White text for labels */
+}
+
+.role-selector label {
+    margin: 0 15px; /* Space between radio button options */
+    display: flex; /* Align radio button and text */
+    align-items: center; /* Vertically center items in label */
+    cursor: pointer;
+}
+
+.role-selector input[type="radio"] {
+    margin-right: 5px; /* Space between radio button and its text */
+    width: auto; /* Override default input width */
+    margin-bottom: 0; /* Override default input margin */
+    accent-color: #007bff; /* Style the radio button color */
 }
 
 .form-container a {

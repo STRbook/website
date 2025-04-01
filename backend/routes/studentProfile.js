@@ -194,15 +194,21 @@ router.get('/:studentId', authenticateToken, async (req, res) => {
   const client = await pool.connect();
   try {
     const { studentId } = req.params;
+    const requestedStudentId = parseInt(studentId); // Ensure it's a number
 
-    // Verify the authenticated user matches the studentId being requested
-    if (req.user.student_id !== parseInt(studentId)) {
+    // Authorization Check: Allow if user is a teacher OR if user is a student viewing their own profile
+    const isOwnProfile = req.user.role === 'student' && req.user.id === requestedStudentId;
+    const isTeacher = req.user.role === 'teacher';
+
+    if (!isOwnProfile && !isTeacher) {
       return res.status(403).json({ 
-        message: 'Unauthorized: You can only view your own profile',
-        requested: parseInt(studentId),
-        authenticated: req.user.student_id
+        message: 'Unauthorized: Access denied.',
+        requested: requestedStudentId,
+        authenticatedUserId: req.user.id,
+        authenticatedUserRole: req.user.role
       });
     }
+    // If we reach here, the user is authorized (either teacher or student viewing own profile)
 
     const studentResult = await client.query(
       'SELECT student_id, email, is_first_login FROM students WHERE student_id = $1',
@@ -235,13 +241,24 @@ router.get('/:studentId', authenticateToken, async (req, res) => {
     const profile = profileResult.rows[0];
     const profileId = profile.profile_id;
 
-    // Fetch related data in parallel
-    const [parentResult, addressesResult, academicResult, siblingsResult, hobbiesResult] = await Promise.all([
+    // Fetch related data in parallel, including projects and MOOCs
+    // Note: Assuming 'projects' and 'mooc_certificates' tables use student_id directly, adjust if they use profile_id
+    const [
+        parentResult, 
+        addressesResult, 
+        academicResult, 
+        siblingsResult, 
+        hobbiesResult,
+        projectsResult, // Add projects query
+        moocsResult     // Add MOOCs query
+    ] = await Promise.all([
       client.query('SELECT * FROM parent_info WHERE student_profile_id = $1', [profileId]),
       client.query('SELECT * FROM addresses WHERE student_profile_id = $1', [profileId]),
       client.query('SELECT * FROM academic_records WHERE student_profile_id = $1 ORDER BY year DESC', [profileId]),
       client.query('SELECT * FROM sibling_info WHERE student_profile_id = $1', [profileId]),
-      client.query('SELECT * FROM hobbies WHERE student_profile_id = $1', [profileId])
+      client.query('SELECT * FROM hobbies WHERE student_profile_id = $1', [profileId]),
+      client.query('SELECT * FROM student_projects WHERE student_id = $1 ORDER BY created_at DESC', [studentId]), // Correct table name: student_projects
+      client.query('SELECT * FROM mooc_certificates WHERE student_profile_id = $1 ORDER BY end_date DESC', [profileId]) // Correct FK: student_profile_id, order by end_date
     ]);
 
     // Construct the full profile object, ensuring is_first_login is included
@@ -260,7 +277,9 @@ router.get('/:studentId', authenticateToken, async (req, res) => {
       addresses: addressesResult.rows || [],
       academic_records: academicResult.rows || [],
       siblings: siblingsResult.rows || [],
-      hobbies: hobbiesResult.rows || []
+      hobbies: hobbiesResult.rows || [],
+      projects: projectsResult.rows || [], // Add projects to response (using correct table name)
+      mooc_certificates: moocsResult.rows || [] // Add MOOCs to response (using correct FK)
     };
 
     res.json(studentProfile);
