@@ -1,296 +1,269 @@
-// src/components/StudentProjects.js
-
 import React, { useState, useEffect } from 'react';
+import { API_ENDPOINTS } from '../config/api';
 import Header from './Header';
 import Footer from './Footer';
-import './styles/StudentProjects.css';
-
-const semesters = [
-  'Semester 1', 'Semester 2', 'Semester 3', 'Semester 4',
-  'Semester 5', 'Semester 6', 'Semester 7', 'Semester 8'
-];
+import './styles/StudentProjects.css'; // Create this CSS file later
 
 const StudentProjects = () => {
-  const [loading, setLoading] = useState(false);
-  const [projects, setProjects] = useState([
-    {
-      title: "E-Commerce Platform",
-      startDate: "2023-08-01",
-      completedDate: "2023-12-15",
-      manHours: 120,
-      description: "Built a full-stack e-commerce platform using MERN stack with features like user authentication, product management, and payment integration.",
-      semester: "Semester 7"
-    },
-    {
-      title: "Machine Learning Image Classifier",
-      startDate: "2023-01-15",
-      completedDate: "2023-05-20",
-      manHours: 80,
-      description: "Developed an ML model using TensorFlow to classify different types of plant diseases from leaf images with 92% accuracy.",
-      semester: "Semester 6"
-    },
-    {
-      title: "Smart Home Automation",
-      startDate: "2022-08-10",
-      completedDate: "2022-12-01",
-      manHours: 100,
-      description: "Created an IoT-based home automation system using Arduino and Raspberry Pi for controlling lights, temperature, and security cameras.",
-      semester: "Semester 5"
-    }
-  ]);
+  const [projects, setProjects] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [formData, setFormData] = useState({
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newProject, setNewProject] = useState({
     title: '',
-    manHours: '',
-    startDate: '',
-    completedDate: '',
-    semester: 'Semester 1',
-    description: ''
+    description: '',
+    technologies: '',
+    project_url: '',
+    image_url: ''
   });
-
-  useEffect(() => {
-    document.title = "Student Projects";
-    fetchProjects();
-  }, []);
+  const [editingProject, setEditingProject] = useState(null); // State to hold project being edited
 
   const fetchProjects = async () => {
+    setIsLoading(true);
+    setError(null);
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('Authentication token not found. Please log in.');
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      setLoading(true);
-      const token = localStorage.getItem('token');
-      const studentId = localStorage.getItem('student_id');
-      
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/projects/${studentId}`, {
+      // Ensure PROJECTS endpoint exists in config before fetching
+      if (!API_ENDPOINTS.PROJECTS) {
+          throw new Error("PROJECTS API endpoint is not defined in config.");
+      }
+      const response = await fetch(API_ENDPOINTS.PROJECTS, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      
       if (!response.ok) {
-        if (response.status === 404) {
-          setProjects([]);
-          return;
-        }
-        throw new Error('Failed to fetch projects');
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-
       const data = await response.json();
       setProjects(data);
-    } catch (err) {
-      setError(err.message);
+    } catch (e) {
+      console.error("Failed to fetch projects:", e);
+      setError('Failed to load projects. Please try again later.');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    if (editingProject) {
+      setEditingProject(prev => ({ ...prev, [name]: value }));
+    } else {
+      setNewProject(prev => ({ ...prev, [name]: value }));
+    }
   };
 
-  const handleSubmit = async (e) => {
+  const handleAddProject = async (e) => {
     e.preventDefault();
-    try {
-      setLoading(true);
-      const token = localStorage.getItem('token');
-      const studentId = localStorage.getItem('student_id');
+    setError(null);
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('Authentication token not found.');
+      return;
+    }
 
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/projects`, {
+    if (!newProject.title || !newProject.description) {
+        alert('Project Title and Description are required.');
+        return;
+    }
+
+     // Ensure PROJECTS endpoint exists in config before posting
+    if (!API_ENDPOINTS.PROJECTS) {
+        setError("PROJECTS API endpoint is not defined in config.");
+        return;
+    }
+
+    try {
+      const response = await fetch(API_ENDPOINTS.PROJECTS, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          ...formData,
-          studentId
-        })
+        body: JSON.stringify(newProject)
       });
 
       if (!response.ok) {
-        throw new Error('Failed to add project');
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-
-      await fetchProjects();
-      
-      // Reset form
-      setFormData({
-        title: '',
-        manHours: '',
-        startDate: '',
-        completedDate: '',
-        semester: 'Semester 1',
-        description: ''
-      });
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      // Refresh projects list after adding
+      fetchProjects();
+      // Reset form and hide
+      setNewProject({ title: '', description: '', technologies: '', project_url: '', image_url: '' });
+      setShowAddForm(false);
+    } catch (e) {
+      console.error("Failed to add project:", e);
+      setError('Failed to add project. Please try again.');
     }
   };
 
+  const handleUpdateProject = async (e) => {
+    e.preventDefault();
+    if (!editingProject) return;
+    setError(null);
+    const token = localStorage.getItem('token');
+     if (!token) {
+      setError('Authentication token not found.');
+      return;
+    }
+
+    if (!editingProject.title || !editingProject.description) {
+        alert('Project Title and Description are required.');
+        return;
+    }
+
+    // Ensure PROJECTS endpoint exists in config before updating
+    if (!API_ENDPOINTS.PROJECTS) {
+        setError("PROJECTS API endpoint is not defined in config.");
+        return;
+    }
+
+    try {
+      const response = await fetch(`${API_ENDPOINTS.PROJECTS}/${editingProject.project_id}`, { // Use specific project ID
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(editingProject)
+      });
+
+       if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      // Refresh projects list after updating
+      fetchProjects();
+      setEditingProject(null); // Close edit form
+    } catch (e) {
+      console.error("Failed to update project:", e);
+      setError('Failed to update project. Please try again.');
+    }
+  };
+
+
+  const handleDeleteProject = async (projectId) => {
+    // Correctly escape the apostrophe here
+    if (!window.confirm('Are you sure you want to delete this project?')) {
+      return;
+    }
+    setError(null);
+    const token = localStorage.getItem('token');
+     if (!token) {
+      setError('Authentication token not found.');
+      return;
+    }
+
+    // Ensure PROJECTS endpoint exists in config before deleting
+    if (!API_ENDPOINTS.PROJECTS) {
+        setError("PROJECTS API endpoint is not defined in config.");
+        return;
+    }
+
+    try {
+      const response = await fetch(`${API_ENDPOINTS.PROJECTS}/${projectId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+       if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      // Refresh projects list after deleting
+      fetchProjects();
+    } catch (e) {
+      console.error("Failed to delete project:", e);
+      setError('Failed to delete project. Please try again.');
+    }
+  };
+
+  const renderProjectForm = (projectData, handleSubmit, cancelAction) => (
+    <form onSubmit={handleSubmit} className="project-form">
+      <h3>{editingProject ? 'Edit Project' : 'Add New Project'}</h3>
+      <div className="form-field">
+        <label>Title</label>
+        <input type="text" name="title" value={projectData.title} onChange={handleInputChange} required />
+      </div>
+      <div className="form-field">
+        <label>Description</label>
+        <textarea name="description" value={projectData.description} onChange={handleInputChange} required />
+      </div>
+      <div className="form-field">
+        <label>Technologies Used (comma-separated)</label>
+        <input type="text" name="technologies" value={projectData.technologies || ''} onChange={handleInputChange} />
+      </div>
+      <div className="form-field">
+        <label>Project URL (Optional)</label>
+        <input type="url" name="project_url" value={projectData.project_url || ''} onChange={handleInputChange} />
+      </div>
+      <div className="form-field">
+        <label>Image URL (Optional)</label>
+        <input type="url" name="image_url" value={projectData.image_url || ''} onChange={handleInputChange} />
+      </div>
+      <div className="form-buttons">
+        <button type="submit" className="button-primary">Save Project</button>
+        <button type="button" onClick={cancelAction} className="button-secondary">Cancel</button>
+      </div>
+    </form>
+  );
+
+
   return (
-    <div className="student-projects">
+    <>
       <Header userType="student" />
-      <div className="container py-4">
-        <h2 className="text-center mb-4">Student Projects</h2>
-        
-        {error && (
-          <div className="alert alert-danger" role="alert">
-            {error}
-          </div>
+      <div className="projects-container">
+        <h2>My Projects</h2>
+
+        {error && <p className="error-message">{error}</p>}
+
+        {!showAddForm && !editingProject && (
+          <button onClick={() => setShowAddForm(true)} className="button-primary add-project-button">
+            Add New Project
+          </button>
         )}
 
-        <div className="project-form">
-          <h3 className="mb-3">Add New Project</h3>
-          <form onSubmit={handleSubmit}>
-            <div className="form-grid">
-              <div className="form-group">
-                <label htmlFor="title">Project Title</label>
-                <input
-                  type="text"
-                  id="title"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  required
-                  className="form-control"
-                />
-              </div>
+        {showAddForm && renderProjectForm(newProject, handleAddProject, () => setShowAddForm(false))}
 
-              <div className="form-group">
-                <label htmlFor="manHours">Man Hours</label>
-                <input
-                  type="number"
-                  id="manHours"
-                  name="manHours"
-                  value={formData.manHours}
-                  onChange={handleInputChange}
-                  required
-                  className="form-control"
-                />
-              </div>
+        {editingProject && renderProjectForm(editingProject, handleUpdateProject, () => setEditingProject(null))}
 
-              <div className="form-group">
-                <label htmlFor="startDate">Start Date</label>
-                <input
-                  type="date"
-                  id="startDate"
-                  name="startDate"
-                  value={formData.startDate}
-                  onChange={handleInputChange}
-                  required
-                  className="form-control"
-                />
-              </div>
 
-              <div className="form-group">
-                <label htmlFor="completedDate">Completion Date</label>
-                <input
-                  type="date"
-                  id="completedDate"
-                  name="completedDate"
-                  value={formData.completedDate}
-                  onChange={handleInputChange}
-                  required
-                  className="form-control"
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="semester">Semester</label>
-                <select
-                  id="semester"
-                  name="semester"
-                  value={formData.semester}
-                  onChange={handleInputChange}
-                  required
-                  className="form-control"
-                >
-                  {semesters.map(sem => (
-                    <option key={sem} value={sem}>{sem}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group full-width">
-                <label htmlFor="description">Project Description</label>
-                <textarea
-                  id="description"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  required
-                  className="form-control"
-                  rows="4"
-                />
-              </div>
-            </div>
-
-            <button 
-              type="submit" 
-              className="btn btn-primary"
-              disabled={loading}
-            >
-              {loading ? 'Adding...' : 'Add Project'}
-            </button>
-          </form>
-        </div>
-
-        {loading ? (
-          <div className="text-center my-4">
-            <div className="spinner-border text-primary" role="status">
-              <span className="visually-hidden">Loading...</span>
-            </div>
-          </div>
+        {isLoading ? (
+          <p>Loading projects...</p>
+        ) : projects.length === 0 ? (
+          // Correctly escape the apostrophe here too
+          <p>You haven&#39;t added any projects yet.</p>
         ) : (
           <div className="projects-list">
-            <h3 className="section-title">Your Projects</h3>
-            {projects.length === 0 ? (
-              <p className="no-projects">No projects added yet.</p>
-            ) : (
-              ["Semester 7", "Semester 6", "Semester 5"].map(semester => {
-                const semesterProjects = projects.filter(proj => proj.semester === semester);
-                if (semesterProjects.length === 0) return null;
-                
-                return (
-                  <div key={semester} className="semester-section">
-                    <h4 className="semester-title">{semester}</h4>
-                    <div className="table-responsive">
-                      <table className="projects-table">
-                        <thead>
-                          <tr>
-                            <th>Project Title</th>
-                            <th>Start Date</th>
-                            <th>Completion Date</th>
-                            <th>Man Hours</th>
-                            <th>Description</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {semesterProjects.map((project, index) => (
-                            <tr key={index}>
-                              <td>{project.title}</td>
-                              <td>{new Date(project.startDate).toLocaleDateString()}</td>
-                              <td>{new Date(project.completedDate).toLocaleDateString()}</td>
-                              <td>{project.manHours}</td>
-                              <td>{project.description}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                );
-              })
-            )}
+            {projects.map(project => (
+              <div key={project.project_id} className="project-card">
+                {project.image_url && <img src={project.image_url} alt={project.title} className="project-image" />}
+                <h3>{project.title}</h3>
+                <p>{project.description}</p>
+                {project.technologies && <p><strong>Technologies:</strong> {project.technologies}</p>}
+                {project.project_url && <a href={project.project_url} target="_blank" rel="noopener noreferrer">View Project</a>}
+                 <div className="project-actions">
+                   <button onClick={() => setEditingProject(project)} className="button-edit">Edit</button>
+                   <button onClick={() => handleDeleteProject(project.project_id)} className="button-delete">Delete</button>
+                 </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
       <Footer />
-    </div>
+    </>
   );
 };
 

@@ -6,7 +6,8 @@ const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const moocCertificatesRouter = require('./routes/moocCertificates');
-const { router: studentProfileRouter, setPool: setStudentProfilePool } = require('./routes/studentProfile'); // Import the new router and its pool setter
+const { router: studentProfileRouter, setPool: setStudentProfilePool } = require('./routes/studentProfile'); // Import the student profile router and its pool setter
+const { router: projectsRouter, setPool: setProjectsPool } = require('./routes/projects'); // Import the projects router and its pool setter
 // Removed unused authenticateToken import
 
 const app = express();
@@ -40,8 +41,9 @@ pool.query('SELECT NOW()', (err, res) => {
   }
 });
 
-// Inject the pool into the student profile router
+// Inject the pool into the routers
 setStudentProfilePool(pool);
+setProjectsPool(pool); // Inject pool into projects router
 
 // Removed redundant authenticateToken function definition
 
@@ -167,8 +169,9 @@ app.post('/api/login', async (req, res) => {
 });
 
 // Mount the routers
-app.use('/api/student-profile', studentProfileRouter); // Use the new router
+app.use('/api/student-profile', studentProfileRouter);
 app.use('/api/mooc-certificates', moocCertificatesRouter);
+app.use('/api/projects', projectsRouter); // Mount the projects router
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

@@ -7,6 +7,7 @@ CREATE SEQUENCE IF NOT EXISTS hobbies_hobby_id_seq;
 CREATE SEQUENCE IF NOT EXISTS mooc_certificates_certificate_id_seq;
 CREATE SEQUENCE IF NOT EXISTS parent_info_parent_id_seq;
 CREATE SEQUENCE IF NOT EXISTS sibling_info_sibling_id_seq;
+CREATE SEQUENCE IF NOT EXISTS student_projects_project_id_seq; -- Add sequence for projects
 
 -- Create trigger function for updating timestamps
 CREATE OR REPLACE FUNCTION update_timestamp()
@@ -128,6 +129,22 @@ CREATE TABLE IF NOT EXISTS sibling_info (
         REFERENCES student_profiles(profile_id)
 );
 
+-- Create student_projects table
+CREATE TABLE IF NOT EXISTS student_projects (
+    project_id integer NOT NULL DEFAULT nextval('student_projects_project_id_seq'::regclass),
+    student_id integer NOT NULL, -- Link directly to students table
+    title character varying NOT NULL,
+    description text,
+    technologies text, -- Could be comma-separated or JSON
+    project_url text,
+    image_url text,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT student_projects_pkey PRIMARY KEY (project_id),
+    CONSTRAINT fk_student FOREIGN KEY (student_id)
+        REFERENCES students(student_id) ON DELETE CASCADE -- Cascade delete if student is deleted
+);
+
 -- Create triggers for timestamp updates
 CREATE TRIGGER update_academic_records_timestamp
     BEFORE UPDATE ON academic_records
@@ -139,6 +156,11 @@ CREATE TRIGGER update_mooc_certificates_timestamp
     FOR EACH ROW
     EXECUTE FUNCTION update_timestamp();
 
+CREATE TRIGGER update_student_projects_timestamp -- Add trigger for projects
+    BEFORE UPDATE ON student_projects
+    FOR EACH ROW
+    EXECUTE FUNCTION update_timestamp();
+
 -- Add indexes for foreign keys to improve query performance
 CREATE INDEX IF NOT EXISTS idx_student_profiles_student_id ON student_profiles(student_id);
 CREATE INDEX IF NOT EXISTS idx_academic_records_student_profile_id ON academic_records(student_profile_id);
@@ -147,3 +169,4 @@ CREATE INDEX IF NOT EXISTS idx_hobbies_student_profile_id ON hobbies(student_pro
 CREATE INDEX IF NOT EXISTS idx_mooc_certificates_student_profile_id ON mooc_certificates(student_profile_id);
 CREATE INDEX IF NOT EXISTS idx_parent_info_student_profile_id ON parent_info(student_profile_id);
 CREATE INDEX IF NOT EXISTS idx_sibling_info_student_profile_id ON sibling_info(student_profile_id);
+CREATE INDEX IF NOT EXISTS idx_student_projects_student_id ON student_projects(student_id); -- Add index for projects FK

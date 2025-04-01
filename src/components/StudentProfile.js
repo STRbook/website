@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // Import useEffect
 import { useNavigate } from 'react-router-dom';
 import { API_ENDPOINTS } from '../config/api';
 import Header from './Header';
@@ -49,8 +49,97 @@ const StudentProfile = () => {
     hobbies: [],
     profile_picture_url: ''
   });
-
+  const [isLoading, setIsLoading] = useState(true); // Add loading state
   const [previewUrl, setPreviewUrl] = useState(null);
+
+  // Fetch existing profile data on component mount
+  useEffect(() => {
+    const fetchProfile = async () => {
+      setIsLoading(true);
+      const studentId = localStorage.getItem('student_id');
+      const token = localStorage.getItem('token');
+
+      if (!studentId || !token) {
+        console.error('Missing authentication credentials');
+        navigate('/login');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_ENDPOINTS.STUDENT_PROFILE}/${studentId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          if (response.status === 401 || response.status === 403) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('student_id');
+            navigate('/login');
+          } else if (response.status === 404) {
+            // Profile not found or not completed yet, keep default empty form
+            console.log('No existing profile found, starting fresh.');
+          } else {
+            throw new Error(`Failed to fetch profile: ${response.statusText}`);
+          }
+          setIsLoading(false);
+          return; // Exit if not ok or 404
+        }
+
+        const data = await response.json();
+
+        // Map fetched data to formData structure
+        const permanentAddress = data.addresses?.find(a => a.address_type === 'permanent') || {};
+        const temporaryAddress = data.addresses?.find(a => a.address_type === 'temporary') || {};
+
+        setFormData({
+          first_name: data.first_name || '',
+          last_name: data.last_name || '',
+          dob: data.dob ? data.dob.split('T')[0] : '', // Format date YYYY-MM-DD
+          gender: data.gender || '', // Assuming gender might be added later
+          phone: data.phone || '',
+          email: data.email || '', // Use email from profile data
+          current_address: { // Map temporary address from backend
+            street: temporaryAddress.street || '',
+            city: temporaryAddress.city || '',
+            state: temporaryAddress.state || '',
+            postal_code: temporaryAddress.zip_code || '', // Map zip_code to postal_code
+            country: temporaryAddress.country || ''
+          },
+          permanent_address: {
+            street: permanentAddress.street || '',
+            city: permanentAddress.city || '',
+            state: permanentAddress.state || '',
+            postal_code: permanentAddress.zip_code || '', // Map zip_code to postal_code
+            country: permanentAddress.country || ''
+          },
+          parent_info: {
+            father_name: data.parent_info?.father_name || '',
+            mother_name: data.parent_info?.mother_name || '',
+            contact: data.parent_info?.contact || '', // Backend uses 'contact'
+            email: data.parent_info?.email || ''      // Backend uses 'email'
+          },
+          // Ensure academic_records is an array, provide default if empty
+          academic_records: data.academic_records?.length > 0 ? data.academic_records : [{ degree: '', institution: '', year: '', grade: '' }],
+          hobbies: data.hobbies || [],
+          profile_picture_url: data.profile_picture_url || ''
+        });
+
+        if (data.profile_picture_url) {
+          setPreviewUrl(data.profile_picture_url);
+        }
+
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+        // Optionally show an error message to the user
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [navigate]); // Dependency array includes navigate
 
   const handleInputChange = (e, section = null, index = null) => {
     const { name, value } = e.target;
@@ -185,32 +274,33 @@ const StudentProfile = () => {
         last_name: formData.last_name,
         dob: formData.dob,
         phone: formData.phone,
-        email: formData.email,
+        email: formData.email, // Student's email
         profile_picture_url: formData.profile_picture_url,
-        parent_info: {
-          father_name: formData.parent_info.father_name,
-          mother_name: formData.parent_info.mother_name,
-          contact: formData.parent_info.contact,
-          email: formData.parent_info.email
-        },
-        // Fix the address structure
+        // Parent info fields directly in the payload
+        father_name: formData.parent_info.father_name,
+        mother_name: formData.parent_info.mother_name,
+        parent_contact: formData.parent_info.contact, // Renamed from contact
+        parent_email: formData.parent_info.email,     // Renamed from email
+        // Corrected address structures
         permanent_address: {
           street: formData.permanent_address.street,
           city: formData.permanent_address.city,
           state: formData.permanent_address.state,
-          zip_code: formData.permanent_address.postal_code, // Note the field name change
+          zip_code: formData.permanent_address.postal_code, // Renamed from postal_code
           country: formData.permanent_address.country
         },
-        temporary_address: {  // Add temporary address
+        temporary_address: { // Renamed from current_address
           street: formData.current_address.street,
           city: formData.current_address.city,
           state: formData.current_address.state,
-          zip_code: formData.current_address.postal_code, // Note the field name change
+          zip_code: formData.current_address.postal_code, // Renamed from postal_code
           country: formData.current_address.country
         },
         academic_records: formData.academic_records,
         hobbies: formData.hobbies,
-        siblings: [] // Add empty siblings array if not using it
+        // Siblings: Send empty array for now, as it's not collected in the form
+        siblings: [] 
+        // Gender: Not included as backend doesn't seem to store it currently
       };
 
       const response = await fetch(API_ENDPOINTS.STUDENT_PROFILE, {
@@ -538,6 +628,18 @@ const StudentProfile = () => {
         return null;
     }
   };
+
+  if (isLoading) {
+    return (
+      <>
+        <Header userType="student" />
+        <div className="profile-form-container">
+          <p>Loading profile...</p>
+        </div>
+        <Footer />
+      </>
+    );
+  }
 
   return (
     <> {/* Use Fragment to avoid extra div */}
