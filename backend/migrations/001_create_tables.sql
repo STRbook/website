@@ -112,6 +112,7 @@ CREATE TABLE IF NOT EXISTS parent_info (
     contact character varying,
     email character varying,
     CONSTRAINT parent_info_pkey PRIMARY KEY (parent_id),
+    CONSTRAINT parent_info_student_profile_id_key UNIQUE (student_profile_id), -- Add UNIQUE constraint
     CONSTRAINT fk_student_profile FOREIGN KEY (student_profile_id)
         REFERENCES student_profiles(profile_id)
 );

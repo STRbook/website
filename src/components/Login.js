@@ -23,7 +23,6 @@ const Login = () => {
         e.preventDefault();
         setLoading(true);
         setError('');
-        console.log('Login attempt:', { email });
 
         try {
             const response = await fetch('http://localhost:5000/api/login', {
@@ -39,7 +38,6 @@ const Login = () => {
             });
 
             const data = await response.json();
-            console.log('Server response:', data);
 
             if (!response.ok) {
                 throw new Error(data.message || 'Login failed');
@@ -49,7 +47,6 @@ const Login = () => {
             localStorage.setItem('student_id', data.student.student_id);
             localStorage.setItem('is_first_login', data.student.is_first_login);
 
-            console.log('Navigation triggered:', data.student.is_first_login ? '/student-profile' : '/timetable');
             navigate(data.student.is_first_login ? '/student-profile' : '/timetable', { replace: true });
 
         } catch (err) {

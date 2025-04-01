@@ -10,20 +10,14 @@ import TimeTable from './components/TimeTable';
 import StudentMooc from './components/StudentMooc';
 import StudentProjects from './components/StudentProjects';
 import Events from './components/Events';
+import Announcements from './components/Announcements'; // Import Announcements
 import VTUCalculator from './components/VTUCalculator';
+import ProtectedRoute from './components/ProtectedRoute'; // Import ProtectedRoute component
 
 import './App.css';
 import './index.css';
 
-const ProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem('token');
-  
-  if (!token) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return children;
-};
+// Removed redundant ProtectedRoute definition
 
 function App() {
   return (
@@ -38,6 +32,7 @@ function App() {
       <Route path="/view-profile" element={<ProtectedRoute><ViewProfile /></ProtectedRoute>} />
       <Route path="/timetable" element={<ProtectedRoute><TimeTable /></ProtectedRoute>} />
       <Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
+      <Route path="/announcements" element={<ProtectedRoute><Announcements /></ProtectedRoute>} /> {/* Add Announcements route */}
       <Route path="/cgpa-calculator" element={<ProtectedRoute><VTUCalculator /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/login" />} />
     </Routes>

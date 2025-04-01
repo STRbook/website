@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { API_ENDPOINTS } from '../config/api';
 import Header from './Header';
 import Footer from './Footer';
+import AddressInputGroup from './AddressInputGroup'; // Import the new component
 import './styles/StudentProfile.css';
 import useStorage from '../hooks/useStorage';
 
@@ -111,7 +112,6 @@ const StudentProfile = () => {
   const validateForm = () => {
     const errors = [];
 
-    // Personal Information
     if (!formData.first_name?.trim()) errors.push('First name is required');
     if (!formData.last_name?.trim()) errors.push('Last name is required');
     if (!formData.dob) errors.push('Date of birth is required');
@@ -124,13 +124,6 @@ const StudentProfile = () => {
       errors.push('Please enter a valid email address');
     }
     
-    // Phone validation with international format support
-    //const phoneRegex = /^\+?[\d\s-]{10,}$/;
-    //if (formData.phone && !phoneRegex.test(formData.phone.trim())) {
-    //  errors.push('Please enter a valid phone number (at least 10 digits, can include +, spaces, or hyphens)');
-    //}
-
-    // Parent Information (nullable in DB, but required in form for completeness)
     if (!formData.parent_info.father_name?.trim()) errors.push('Father\'s name is required');
     if (!formData.parent_info.mother_name?.trim()) errors.push('Mother\'s name is required');
     if (!formData.parent_info.contact?.trim()) errors.push('Parent\'s contact is required');
@@ -138,23 +131,7 @@ const StudentProfile = () => {
     if (formData.parent_info.email && !emailRegex.test(formData.parent_info.email)) {
       errors.push('Please enter a valid parent email address');
     }
-    //if (formData.parent_info.contact && !phoneRegex.test(formData.parent_info.contact.trim())) {
-     // errors.push('Please enter a valid parent contact number');
-    //}
 
-    // Address Validation (nullable in DB, but required in form for completeness)
-    //const validateAddress = (address, prefix) => {
-     // if (!address.street?.trim()) errors.push(`${prefix} street is required`);
-     // if (!address.city?.trim()) errors.push(`${prefix} city is required`);
-     // if (!address.state?.trim()) errors.push(`${prefix} state is required`);
-      //if (!address.zip_code?.trim()) errors.push(`${prefix} postal code is required`);
-     // if (!address.country?.trim()) errors.push(`${prefix} country is required`);
-    //};
-
-    //validateAddress(formData.permanent_address, 'Permanent address');
-    //validateAddress(formData.current_address, 'Current address');
-
-    // Academic Records (required in DB)
     if (!Array.isArray(formData.academic_records) || formData.academic_records.length === 0) {
       errors.push('At least one academic record is required');
     } else {
@@ -164,7 +141,6 @@ const StudentProfile = () => {
         if (!record.year) errors.push(`Year is required for academic record ${index + 1}`);
         if (!record.grade?.trim()) errors.push(`Grade is required for academic record ${index + 1}`);
         
-        // Additional validation for year
         const currentYear = new Date().getFullYear();
         const year = parseInt(record.year);
         if (isNaN(year) || year < 1900 || year > currentYear + 5) {
@@ -173,7 +149,6 @@ const StudentProfile = () => {
       });
     }
 
-    // Hobbies validation (optional but if present should have a name)
     if (Array.isArray(formData.hobbies)) {
       formData.hobbies.forEach((hobby, index) => {
         if (!hobby?.hobby_name?.trim()) {
@@ -188,7 +163,6 @@ const StudentProfile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate form before submission 
     const validationErrors = validateForm();
     if (validationErrors.length > 0) {
       alert(validationErrors.join('\n'));
@@ -357,14 +331,12 @@ const StudentProfile = () => {
             onChange={async (e) => {
               const file = e.target.files[0];
               if (file) {
-                // Create preview
                 const reader = new FileReader();
                 reader.onloadend = () => {
                   setPreviewUrl(reader.result);
                 };
                 reader.readAsDataURL(file);
 
-                // Upload to Firebase
                 try {
                   const url = await uploadFile(file);
                   setFormData(prev => ({
@@ -392,121 +364,17 @@ const StudentProfile = () => {
     <div className="profile-form-section">
       <h2>Address Information</h2>
       
-      <div className="address-block">
-        <h4>Current Address</h4>
-        <div className="form-row">
-          <div className="form-field">
-            <label>Street</label>
-            <input
-              type="text"
-              name="street"
-              value={formData.current_address.street}
-              onChange={(e) => handleInputChange(e, 'current_address')}
-              required
-            />
-          </div>
-          <div className="form-field">
-            <label>City</label>
-            <input
-              type="text"
-              name="city"
-              value={formData.current_address.city}
-              onChange={(e) => handleInputChange(e, 'current_address')}
-              required
-            />
-          </div>
-        </div>
-        <div className="form-row">
-          <div className="form-field">
-            <label>State</label>
-            <input
-              type="text"
-              name="state"
-              value={formData.current_address.state}
-              onChange={(e) => handleInputChange(e, 'current_address')}
-              required
-            />
-          </div>
-          <div className="form-field">
-            <label>Postal Code</label>
-            <input
-              type="text"
-              name="postal_code"
-              value={formData.current_address.postal_code}
-              onChange={(e) => handleInputChange(e, 'current_address')}
-              required
-            />
-          </div>
-          <div className="form-field">
-            <label>Country</label>
-            <input
-              type="text"
-              name="country"
-              value={formData.current_address.country}
-              onChange={(e) => handleInputChange(e, 'current_address')}
-              required
-            />
-          </div>
-        </div>
-      </div>
+      <AddressInputGroup
+        addressData={formData.current_address}
+        sectionName="Current Address"
+        onChange={(e) => handleInputChange(e, 'current_address')}
+      />
 
-      <div className="address-block">
-        <h4>Permanent Address</h4>
-        <div className="form-row">
-          <div className="form-field">
-            <label>Street</label>
-            <input
-              type="text"
-              name="street"
-              value={formData.permanent_address.street}
-              onChange={(e) => handleInputChange(e, 'permanent_address')}
-              required
-            />
-          </div>
-          <div className="form-field">
-            <label>City</label>
-            <input
-              type="text"
-              name="city"
-              value={formData.permanent_address.city}
-              onChange={(e) => handleInputChange(e, 'permanent_address')}
-              required
-            />
-          </div>
-        </div>
-        <div className="form-row">
-          <div className="form-field">
-            <label>State</label>
-            <input
-              type="text"
-              name="state"
-              value={formData.permanent_address.state}
-              onChange={(e) => handleInputChange(e, 'permanent_address')}
-              required
-            />
-          </div>
-          <div className="form-field">
-            <label>Postal Code</label>
-            <input
-              type="text"
-              name="postal_code"
-              value={formData.permanent_address.postal_code}
-              onChange={(e) => handleInputChange(e, 'permanent_address')}
-              required
-            />
-          </div>
-          <div className="form-field">
-            <label>Country</label>
-            <input
-              type="text"
-              name="country"
-              value={formData.permanent_address.country}
-              onChange={(e) => handleInputChange(e, 'permanent_address')}
-              required
-            />
-          </div>
-        </div>
-      </div>
+      <AddressInputGroup
+        addressData={formData.permanent_address}
+        sectionName="Permanent Address"
+        onChange={(e) => handleInputChange(e, 'permanent_address')}
+      />
     </div>
   );
 
@@ -672,11 +540,12 @@ const StudentProfile = () => {
   };
 
   return (
-    <div className="profile-form-container">
+    <> {/* Use Fragment to avoid extra div */}
       <Header userType="student" />
-      <form onSubmit={handleSubmit} className="profile-form-content">
-        <div className="step-indicator">
-          Step {currentStep} of 4
+      <div className="profile-form-container"> {/* Move container inside */}
+        <form onSubmit={handleSubmit} className="profile-form-content">
+          <div className="step-indicator">
+            Step {currentStep} of 4
         </div>
         {renderStep()}
         <div className="form-buttons">
@@ -695,9 +564,10 @@ const StudentProfile = () => {
             </button>
           )}
         </div>
-      </form>
+        </form>
+      </div> {/* Close container */}
       <Footer />
-    </div>
+    </> 
   );
 };
 
