@@ -1,139 +1,70 @@
-import React, { useState, useEffect } from 'react';
-import { Navigate, useLocation } from 'react-router-dom'; 
-import axios from 'axios'; 
-import { API_ENDPOINTS } from '../config/api'; 
+import React from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+// Removed unused imports: axios, API_ENDPOINTS, useState, useEffect
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
   const storedUser = localStorage.getItem('user');
-  const location = useLocation(); 
+  const location = useLocation();
 
-  const [user, setUser] = useState(null);
-  const [isStudentFirstLogin, setIsStudentFirstLogin] = useState(null); 
-  const [loading, setLoading] = useState(true);
-  const [authError, setAuthError] = useState(null); 
+  // No need for loading state or useEffect for API calls anymore
 
-  useEffect(() => {
-    let isMounted = true; 
-
-    const verifyUser = async () => {
-      setLoading(true);
-      setAuthError(null);
-
-      if (!token || !storedUser) {
-        if (isMounted) setLoading(false);
-        return; 
-      }
-
-      let parsedUser;
-      try {
-        parsedUser = JSON.parse(storedUser);
-        if (isMounted) setUser(parsedUser);
-      } catch (error) {
-        console.error("Failed to parse user data:", error);
-        if (isMounted) {
-          setAuthError("Invalid user data stored.");
-          setLoading(false);
-        }
-        
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
-        return;
-      }
-
-      
-      if (parsedUser.role === 'teacher') {
-        if (isMounted) setLoading(false);
-        return; 
-      }
-
-      
-      if (parsedUser.role === 'student') {
-        
-        if (typeof parsedUser.is_first_login === 'boolean') {
-           if (isMounted) {
-              setIsStudentFirstLogin(parsedUser.is_first_login);
-              setLoading(false);
-           }
-           return;
-        }
-        
-        
-        try {
-          const response = await axios.get(`${API_ENDPOINTS.STUDENT_PROFILE}/${parsedUser.id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          if (isMounted) {
-            setIsStudentFirstLogin(response.data.is_first_login);
-          }
-        } catch (err) {
-          console.error('Error fetching student profile status:', err);
-          if (isMounted) {
-            setAuthError(err.response?.data?.message || err.message || 'Failed to verify student status');
-          }
-        } finally {
-          if (isMounted) setLoading(false);
-        }
-      } else {
-        
-         if (isMounted) {
-            setAuthError(`Unknown user role: ${parsedUser.role}`);
-            setLoading(false);
-         }
-      }
-    };
-
-    verifyUser();
-
-    return () => {
-      isMounted = false; 
-    };
-
-  }, [token, storedUser]); 
-
-
-
-  if (loading) {
-    
-    return <div>Loading...</div>; 
-  }
-
-  if (!token || !user || authError) {
-    
-    console.error("Authentication check failed or error occurred:", authError);
-    
+  if (!token || !storedUser) {
+    // If no token or user data, redirect to login
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  
+  let user;
+  try {
+    user = JSON.parse(storedUser);
+  } catch (error) {
+    console.error("Failed to parse user data from localStorage:", error);
+    // Clear potentially corrupted data and redirect
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // Basic validation of parsed user object
+  if (!user || typeof user !== 'object' || !user.role || !user.id) {
+     console.error("Invalid user data structure in localStorage:", user);
+     localStorage.removeItem('user');
+     localStorage.removeItem('token');
+     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+
+  // --- Role-based Access Logic ---
 
   if (user.role === 'teacher') {
-    
+    // Teachers have access to all protected routes
     return children;
   }
 
   if (user.role === 'student') {
-    if (isStudentFirstLogin === true) {
-      
+    // Check student's first login status directly from the parsed user object
+    if (typeof user.is_first_login !== 'boolean') {
+        console.error("Student 'is_first_login' flag missing or invalid in localStorage:", user);
+        // Redirect to login if status is unclear
+        return <Navigate to="/login" state={{ from: location }} replace />;
+    }
+
+    if (user.is_first_login === true) {
+      // If it's the first login, only allow access to the student profile page
       if (location.pathname === '/student-profile') {
-        return children; 
+        return children; // Allow access to the profile page
       } else {
-        
+        // Redirect any other route attempts to the profile page
         return <Navigate to="/student-profile" replace />;
       }
-    } else if (isStudentFirstLogin === false) {
-      
-      
-      return children;
     } else {
-       
-       console.error("Student first login status undetermined, redirecting to login.");
-       return <Navigate to="/login" state={{ from: location }} replace />;
+      // If not first login (is_first_login is false), allow access to the requested child route
+      return children;
     }
   }
 
-  
-  console.error("Unknown user role detected in render logic, redirecting to login.");
+  // --- Fallback for Unknown Roles ---
+  console.error(`Unknown user role detected ('${user.role}'), redirecting to login.`);
   return <Navigate to="/login" state={{ from: location }} replace />;
 };
 
