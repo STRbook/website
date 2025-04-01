@@ -1,6 +1,6 @@
 import React from 'react';
 
-// Reusable component for rendering address input fields
+
 const AddressInputGroup = ({ addressData, sectionName, onChange }) => {
   return (
     <div className="address-block">
@@ -42,7 +42,7 @@ const AddressInputGroup = ({ addressData, sectionName, onChange }) => {
           <label>Postal Code</label>
           <input
             type="text"
-            name="postal_code" // Keep frontend state name consistent
+            name="postal_code" 
             value={addressData.postal_code || ''}
             onChange={onChange}
             required

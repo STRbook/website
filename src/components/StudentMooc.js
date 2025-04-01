@@ -1,5 +1,3 @@
-// src/components/StudentMooc.js
-
 import React, { useState, useEffect } from 'react';
 import { storage } from '../firebase/config';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -55,7 +53,7 @@ const StudentMooc = () => {
       setCertificates(data);
     } catch (err) {
       console.error(err);
-      // Don't set error state for empty certificates
+      
       setCertificates([]);
     }
   };
@@ -71,8 +69,8 @@ const StudentMooc = () => {
   const handleFileUpload = async (file) => {
     if (!file) return;
     
-    // Check file size (4MB limit)
-    const maxSize = 4 * 1024 * 1024; // 4MB in bytes
+    
+    const maxSize = 4 * 1024 * 1024; 
     if (file.size > maxSize) {
       setError('File size exceeds 4MB limit');
       return;
@@ -88,17 +86,17 @@ const StudentMooc = () => {
       setLoading(true);
       setError(null);
       
-      // Create a reference to the file in Firebase Storage
+      
       const studentId = localStorage.getItem('student_id');
       const fileName = `${studentId}_${Date.now()}_${file.name}`;
       const storageRef = ref(storage, `mooc_certificates/${fileName}`);
       
-      // Start upload
+      
       const uploadTask = uploadBytesResumable(storageRef, file);
       
       uploadTask.on('state_changed',
         (snapshot) => {
-          // Track upload progress
+          
           const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
           setUploadProgress(progress);
         },
@@ -108,7 +106,7 @@ const StudentMooc = () => {
           console.error(error);
         },
         async () => {
-          // Upload completed successfully
+          
           const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
           setFormData(prev => ({
             ...prev,
@@ -132,12 +130,12 @@ const StudentMooc = () => {
       const token = localStorage.getItem('token');
       const studentId = localStorage.getItem('student_id');
       
-      // Format data to match schema requirements
+      
       const requestData = {
         ...formData,
         student_id: studentId,
-        hours_per_week: parseInt(formData.hoursPerWeek, 10), // Ensure integer
-        start_date: formData.startDate, // Already in YYYY-MM-DD format from input[type="date"]
+        hours_per_week: parseInt(formData.hoursPerWeek, 10), 
+        start_date: formData.startDate, 
         end_date: formData.endDate,
         certificate_url: formData.certificateUrl
       };
@@ -158,10 +156,10 @@ const StudentMooc = () => {
         throw new Error(errorData.error || 'Failed to save certificate');
       }
       
-      // Refresh certificates list
+      
       await fetchCertificates();
       
-      // Reset form
+      
       setFormData({
         semester: 'Semester 1',
         platform: '',

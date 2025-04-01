@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getStorage, ref, getDownloadURL } from 'firebase/storage';
-import './styles/Profile.css'; // Reuse existing profile styles
+import './styles/Profile.css'; 
 import Header from './Header';
 import Footer from './Footer';
-import { API_ENDPOINTS } from '../config/api'; // Import API endpoints
+import { API_ENDPOINTS } from '../config/api'; 
 
 const TeacherViewStudentProfile = () => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [profilePicUrl, setProfilePicUrl] = useState('/default-profile.png'); // Default image
-  const { studentId } = useParams(); // Get studentId from URL parameter
+  const [profilePicUrl, setProfilePicUrl] = useState('/default-profile.png'); 
+  const { studentId } = useParams(); 
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,12 +22,12 @@ const TeacherViewStudentProfile = () => {
     const fetchProfile = async () => {
       setLoading(true);
       setError(null);
-      const token = localStorage.getItem('token'); // Teacher's token
+      const token = localStorage.getItem('token'); 
 
       if (!token) {
         setError('Authentication token not found. Please log in.');
         setLoading(false);
-        navigate('/login'); // Redirect teacher to login if not authenticated
+        navigate('/login'); 
         return;
       }
 
@@ -38,7 +38,7 @@ const TeacherViewStudentProfile = () => {
       }
 
       try {
-        // Use the standard student profile endpoint, assuming backend handles teacher authorization
+        
         const response = await fetch(`${API_ENDPOINTS.STUDENT_PROFILE}/${studentId}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -50,9 +50,9 @@ const TeacherViewStudentProfile = () => {
         if (!response.ok) {
           const errorData = await response.json();
           if (response.status === 401 || response.status === 403) {
-            // Handle unauthorized access specifically
+            
             setError(errorData.message || 'Unauthorized to view this profile.');
-            // Optional: Redirect or show specific message
+            
           } else if (response.status === 404) {
              setError('Student profile not found.');
           } else {
@@ -60,10 +60,10 @@ const TeacherViewStudentProfile = () => {
           }
         } else {
           const data = await response.json();
-          console.log("Fetched student profile data:", data); // Log the received data
+          console.log("Fetched student profile data:", data); 
           setProfile(data);
 
-          // Fetch profile picture from Firebase Storage if URL exists
+          
           if (data.profile_picture_url) {
             try {
               const storage = getStorage();
@@ -71,7 +71,7 @@ const TeacherViewStudentProfile = () => {
               setProfilePicUrl(downloadUrl);
             } catch (firebaseError) {
               console.error("Firebase Storage Error:", firebaseError);
-              // Keep the default profile picture if Firebase fetch fails
+              
               setProfilePicUrl('/default-profile.png');
             }
           } else {
@@ -89,11 +89,11 @@ const TeacherViewStudentProfile = () => {
     fetchProfile();
   }, [studentId, navigate]);
 
-  // Helper to render profile fields safely
+  
   const renderField = (value, label) => (
     <div className="info-item">
       <label>{label}</label>
-      <span>{value || 'N/A'}</span> {/* Display N/A if value is missing */}
+      <span>{value || 'N/A'}</span> 
     </div>
   );
 
@@ -101,30 +101,30 @@ const TeacherViewStudentProfile = () => {
   if (error) return <div className="error-message">Error: {error}</div>;
   if (!profile) return <div className="profile-not-found">Profile data could not be loaded.</div>;
 
-  // Find addresses (assuming the structure from ViewProfile.js)
+  
   const temporaryAddress = profile.addresses?.find(addr => addr.address_type === 'temporary');
   const permanentAddress = profile.addresses?.find(addr => addr.address_type === 'permanent');
 
   return (
     <div className="profile-container">
-      {/* Header now determines role internally */}
+      
       <Header /> 
       <div className="profile-content">
         <div className="profile-view">
           <div className="profile-header-actions">
-            {/* Simplified header for viewing */}
+            
             <h2>Student Profile: {profile.first_name} {profile.last_name}</h2>
           </div>
 
           <div className="profile-sections-grid">
-            {/* Basic Info Section */}
+            
             <div className="profile-section full-width">
               <div className="profile-header">
                 <div className="profile-picture">
                   <img 
                     src={profilePicUrl} 
                     alt={`${profile.first_name}'s profile`}
-                    onError={(e) => e.target.src = '/default-profile.png'} // Fallback
+                    onError={(e) => e.target.src = '/default-profile.png'} 
                   />
                 </div>
                 <div className="profile-name">
@@ -140,7 +140,7 @@ const TeacherViewStudentProfile = () => {
               </div>
             </div>
 
-            {/* Parent Info Section */}
+            
             {profile.parent_info && (
               <div className="profile-section">
                 <h3>Parent Information</h3>
@@ -153,7 +153,7 @@ const TeacherViewStudentProfile = () => {
               </div>
             )}
 
-            {/* Address Section */}
+            
             <div className="profile-section full-width">
               <h3>Address Information</h3>
               {temporaryAddress && (
@@ -183,7 +183,7 @@ const TeacherViewStudentProfile = () => {
                {!temporaryAddress && !permanentAddress && <p>No address information available.</p>}
             </div>
 
-            {/* Academic Records Section */}
+            
             <div className="profile-section full-width">
               <h3>Academic Records</h3>
               <table className="academic-table">
@@ -214,7 +214,7 @@ const TeacherViewStudentProfile = () => {
               </table>
             </div>
 
-            {/* Hobbies Section */}
+            
             {profile.hobbies && profile.hobbies.length > 0 && (
               <div className="profile-section">
                 <h3>Hobbies & Interests</h3>
@@ -228,18 +228,18 @@ const TeacherViewStudentProfile = () => {
               </div>
             )}
 
-            {/* Projects Section */}
+            
             <div className="profile-section full-width">
               <h3>Projects</h3>
               {profile.projects?.length > 0 ? (
-                <table className="data-table"> {/* Use a generic class or style similarly */}
+                <table className="data-table"> 
                   <thead>
                     <tr>
                       <th>Title</th>
                       <th>Description</th>
                       <th>Technologies</th>
                       <th>Link</th>
-                      {/* Add other relevant project fields */}
+                      
                     </tr>
                   </thead>
                   <tbody>
@@ -257,7 +257,7 @@ const TeacherViewStudentProfile = () => {
                             'N/A'
                           )}
                         </td>
-                        {/* Render other fields */}
+                        
                       </tr>
                     ))}
                   </tbody>
@@ -267,18 +267,18 @@ const TeacherViewStudentProfile = () => {
               )}
             </div>
 
-            {/* MOOC Certificates Section */}
+            
             <div className="profile-section full-width">
               <h3>MOOC Certificates</h3>
               {profile.mooc_certificates?.length > 0 ? (
-                 <table className="data-table"> {/* Use a generic class or style similarly */}
+                 <table className="data-table"> 
                    <thead>
                      <tr>
                        <th>Course Name</th>
                        <th>Platform</th>
                        <th>Issued Date</th>
                        <th>Certificate URL</th>
-                       {/* Add other relevant MOOC fields */}
+                       
                      </tr>
                    </thead>
                    <tbody>
@@ -296,7 +296,7 @@ const TeacherViewStudentProfile = () => {
                              'N/A'
                            )}
                          </td>
-                          {/* Render other fields */}
+                          
                        </tr>
                      ))}
                    </tbody>

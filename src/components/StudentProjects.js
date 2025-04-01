@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { API_ENDPOINTS } from '../config/api';
 import Header from './Header';
 import Footer from './Footer';
-import './styles/StudentProjects.css'; // Create this CSS file later
+import './styles/StudentProjects.css'; 
 
 const StudentProjects = () => {
   const [projects, setProjects] = useState([]);
@@ -16,7 +16,7 @@ const StudentProjects = () => {
     project_url: '',
     image_url: ''
   });
-  const [editingProject, setEditingProject] = useState(null); // State to hold project being edited
+  const [editingProject, setEditingProject] = useState(null); 
 
   const fetchProjects = async () => {
     setIsLoading(true);
@@ -29,7 +29,7 @@ const StudentProjects = () => {
     }
 
     try {
-      // Ensure PROJECTS endpoint exists in config before fetching
+      
       if (!API_ENDPOINTS.PROJECTS) {
           throw new Error("PROJECTS API endpoint is not defined in config.");
       }
@@ -123,14 +123,14 @@ const StudentProjects = () => {
         return;
     }
 
-    // Ensure PROJECTS endpoint exists in config before updating
+    
     if (!API_ENDPOINTS.PROJECTS) {
         setError("PROJECTS API endpoint is not defined in config.");
         return;
     }
 
     try {
-      const response = await fetch(`${API_ENDPOINTS.PROJECTS}/${editingProject.project_id}`, { // Use specific project ID
+      const response = await fetch(`${API_ENDPOINTS.PROJECTS}/${editingProject.project_id}`, { 
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -142,9 +142,9 @@ const StudentProjects = () => {
        if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      // Refresh projects list after updating
+      
       fetchProjects();
-      setEditingProject(null); // Close edit form
+      setEditingProject(null); 
     } catch (e) {
       console.error("Failed to update project:", e);
       setError('Failed to update project. Please try again.');
@@ -153,7 +153,7 @@ const StudentProjects = () => {
 
 
   const handleDeleteProject = async (projectId) => {
-    // Correctly escape the apostrophe here
+    
     if (!window.confirm('Are you sure you want to delete this project?')) {
       return;
     }
@@ -164,7 +164,7 @@ const StudentProjects = () => {
       return;
     }
 
-    // Ensure PROJECTS endpoint exists in config before deleting
+    
     if (!API_ENDPOINTS.PROJECTS) {
         setError("PROJECTS API endpoint is not defined in config.");
         return;
@@ -181,7 +181,7 @@ const StudentProjects = () => {
        if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      // Refresh projects list after deleting
+      
       fetchProjects();
     } catch (e) {
       console.error("Failed to delete project:", e);
@@ -242,7 +242,7 @@ const StudentProjects = () => {
         {isLoading ? (
           <p>Loading projects...</p>
         ) : projects.length === 0 ? (
-          // Correctly escape the apostrophe here too
+          
           <p>You haven&#39;t added any projects yet.</p>
         ) : (
           <div className="projects-list">

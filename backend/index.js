@@ -6,10 +6,10 @@ const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const moocCertificatesRouter = require('./routes/moocCertificates');
-const { router: studentProfileRouter, setPool: setStudentProfilePool } = require('./routes/studentProfile'); // Import the student profile router and its pool setter
-const { router: projectsRouter, setPool: setProjectsPool } = require('./routes/projects'); // Import the projects router and its pool setter
-const { router: teacherRouter, setPool: setTeacherPool } = require('./routes/teacher'); // Import the teacher router and its pool setter
-// Removed unused authenticateToken import
+const { router: studentProfileRouter, setPool: setStudentProfilePool } = require('./routes/studentProfile'); 
+const { router: projectsRouter, setPool: setProjectsPool } = require('./routes/projects'); 
+const { router: teacherRouter, setPool: setTeacherPool } = require('./routes/teacher'); 
+
 
 const app = express();
 
@@ -42,12 +42,11 @@ pool.query('SELECT NOW()', (err, res) => {
   }
 });
 
-// Inject the pool into the routers
-setStudentProfilePool(pool);
-setProjectsPool(pool); // Inject pool into projects router
-setTeacherPool(pool); // Inject pool into teacher router
 
-// Removed redundant authenticateToken function definition
+setStudentProfilePool(pool);
+setProjectsPool(pool); 
+setTeacherPool(pool); 
+
 
 app.get('/', (req, res) => {
   res.send('Server is up and running');
@@ -88,7 +87,6 @@ app.post('/api/register', async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Generate username from email
     
 
     const newStudent = await pool.query(
@@ -131,7 +129,7 @@ app.post('/api/login', async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT * FROM students WHERE email = $1', 
-      [email.toLowerCase()] // Convert email to lowercase for consistency
+      [email.toLowerCase()] 
     );
     
     if (result.rows.length === 0) {
@@ -146,14 +144,13 @@ app.post('/api/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // Ensure the role column exists and has a value, default to 'student' if missing for some reason
     const userRole = student.role || 'student'; 
     
     const token = jwt.sign(
       { 
-        id: student.student_id, // Use 'id' for consistency with teacher token
+        id: student.student_id, 
         email: student.email,
-        role: userRole // Include the role
+        role: userRole 
       },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '24h' }
@@ -161,12 +158,12 @@ app.post('/api/login', async (req, res) => {
 
     res.json({
       token,
-      user: { // Rename 'student' to 'user' for consistency
+      user: { 
         id: student.student_id,
         email: student.email,
-        role: userRole, // Include role in response body
+        role: userRole, 
         is_first_login: student.is_first_login
-        // Add first/last name if needed (requires joining student_profiles)
+        
       }
     });
 
@@ -176,11 +173,11 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Mount the routers
+
 app.use('/api/student-profile', studentProfileRouter);
 app.use('/api/mooc-certificates', moocCertificatesRouter);
-app.use('/api/projects', projectsRouter); // Mount the projects router
-app.use('/api/teacher', teacherRouter); // Mount the teacher router
+app.use('/api/projects', projectsRouter); 
+app.use('/api/teacher', teacherRouter); 
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

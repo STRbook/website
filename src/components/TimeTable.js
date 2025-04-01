@@ -10,7 +10,7 @@ const TimeTable = () => {
   const [selectedSemester, setSelectedSemester] = useState('5');
   const [selectedSection, setSelectedSection] = useState('C');
 
-  // Update current time every minute
+  
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
@@ -43,7 +43,7 @@ const TimeTable = () => {
           { time: '2:00 - 3:00', subject: 'Computer Science Lab', teacher: 'Prof. Davis', room: 'Lab 1', lab: true },
           { time: '3:00 - 4:00', subject: 'Geography', teacher: 'Mrs. Taylor', room: '108' }
         ],
-        // Add similar data for other days
+        
       }
     },
     "5": {

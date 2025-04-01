@@ -10,13 +10,13 @@ const Events = () => {
     eventTitle: '',
     eventDate: '',
     description: '',
-    role: '', // e.g., participant, organizer, volunteer
-    certificate: '' // optional certificate link
+    role: '', 
+    certificate: '' 
   });
 
   useEffect(() => {
-    // Fetch events from backend when implemented
-    // For now using local storage
+    
+    
     const storedEvents = localStorage.getItem('studentEvents');
     if (storedEvents) {
       setEvents(JSON.parse(storedEvents));
@@ -35,7 +35,7 @@ const Events = () => {
     e.preventDefault();
     const eventToAdd = {
       ...newEvent,
-      id: Date.now(), // simple way to generate unique id
+      id: Date.now(), 
       eventDate: new Date(newEvent.eventDate).toISOString().split('T')[0]
     };
 
@@ -43,7 +43,7 @@ const Events = () => {
     setEvents(updatedEvents);
     localStorage.setItem('studentEvents', JSON.stringify(updatedEvents));
 
-    // Reset form
+    
     setNewEvent({
       clubName: '',
       eventTitle: '',
@@ -66,7 +66,7 @@ const Events = () => {
       <main className="events-content">
         <h2>College Events</h2>
         
-        {/* Add Event Form */}
+        
         <div className="add-event-section">
           <h3>Add New Event</h3>
           <form onSubmit={handleSubmit} className="event-form">
@@ -150,7 +150,7 @@ const Events = () => {
           </form>
         </div>
 
-        {/* Events Table */}
+        
         <div className="events-table-section">
           <h3>Your Events</h3>
           <div className="table-responsive">

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom'; // Import Link
+import { useNavigate, Link } from 'react-router-dom'; 
 import axios from 'axios';
-import { API_ENDPOINTS } from '../config/api'; // Import API endpoints
+import { API_ENDPOINTS } from '../config/api'; 
 import './Register.css';
 
 const Register = () => {
@@ -10,24 +10,24 @@ const Register = () => {
     }, []);
 
     const [email, setEmail] = useState('');
-    // Removed duplicate email state declaration
+    
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [firstName, setFirstName] = useState(''); // Add first name state
-    const [lastName, setLastName] = useState(''); // Add last name state
-    const [userRole, setUserRole] = useState('student'); // Add role state, default to student
+    const [firstName, setFirstName] = useState(''); 
+    const [lastName, setLastName] = useState(''); 
+    const [userRole, setUserRole] = useState('student'); 
     const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false); // Add loading state
+    const [loading, setLoading] = useState(false); 
     const [successMessage, setSuccessMessage] = useState('');
     const navigate = useNavigate();
 
     const handleRegister = async (e) => {
-        e.preventDefault(); // Prevent default form submission
+        e.preventDefault(); 
         setError('');
         setSuccessMessage('');
         setLoading(true);
 
-        // Basic validation
+        
         if (!email || !password || !confirmPassword) {
             setError('Email and password fields are required');
             setLoading(false);
@@ -49,7 +49,7 @@ const Register = () => {
             return;
         }
         
-        // Determine endpoint and payload based on role
+        
         const endpoint = userRole === 'student' ? API_ENDPOINTS.REGISTER : API_ENDPOINTS.TEACHER_REGISTER;
         const payload = userRole === 'student' 
             ? { email: email.trim().toLowerCase(), password }
@@ -62,7 +62,7 @@ const Register = () => {
             setSuccessMessage('Registration successful! Redirecting to login...');
             setTimeout(() => {
                 navigate('/login');
-            }, 2000); // Redirect after 2 seconds
+            }, 2000); 
 
         } catch (err) {
             setError(err.response?.data?.message || `Registration as ${userRole} failed`);
@@ -79,8 +79,8 @@ const Register = () => {
                 {error && <p className="error-message">{error}</p>}
                 {successMessage && <p className="success-message">{successMessage}</p>}
                 
-                {/* Role Selector */}
-                 <div className="role-selector register-role-selector"> {/* Add specific class */}
+                
+                 <div className="role-selector register-role-selector"> 
                     <label>
                         <input 
                             type="radio" 
@@ -103,7 +103,7 @@ const Register = () => {
                     </label>
                 </div>
 
-                {/* Conditional Fields for Teacher */}
+                
                 {userRole === 'teacher' && (
                     <>
                         <input
@@ -147,7 +147,7 @@ const Register = () => {
                     required
                 />
                 
-                {/* Use form onSubmit */}
+                
                 <form onSubmit={handleRegister} style={{width: '100%'}}> 
                     <button type="submit" disabled={loading}>
                         {loading ? 'Registering...' : 'Register'}
@@ -155,7 +155,7 @@ const Register = () => {
                 </form>
                 
                 <p>
-                    Already have an account? <Link to="/login">Login</Link> {/* Use Link */}
+                    Already have an account? <Link to="/login">Login</Link> 
                 </p>
             </div>
         </div>

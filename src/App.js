@@ -1,4 +1,3 @@
-// src/App.js
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login';
@@ -10,15 +9,14 @@ import TimeTable from './components/TimeTable';
 import StudentMooc from './components/StudentMooc';
 import StudentProjects from './components/StudentProjects';
 import Events from './components/Events';
-import Announcements from './components/Announcements'; // Import Announcements
+import Announcements from './components/Announcements'; 
 import VTUCalculator from './components/VTUCalculator';
-import TeacherViewStudentProfile from './components/TeacherViewStudentProfile'; // Import Teacher view component
-import ProtectedRoute from './components/ProtectedRoute'; // Import ProtectedRoute component
+import TeacherViewStudentProfile from './components/TeacherViewStudentProfile'; 
+import ProtectedRoute from './components/ProtectedRoute'; 
 
 import './App.css';
 import './index.css';
 
-// Removed redundant ProtectedRoute definition
 
 function App() {
   return (
@@ -33,9 +31,9 @@ function App() {
       <Route path="/view-profile" element={<ProtectedRoute><ViewProfile /></ProtectedRoute>} />
       <Route path="/timetable" element={<ProtectedRoute><TimeTable /></ProtectedRoute>} />
       <Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
-      <Route path="/announcements" element={<ProtectedRoute><Announcements /></ProtectedRoute>} /> {/* Add Announcements route */}
+      <Route path="/announcements" element={<ProtectedRoute><Announcements /></ProtectedRoute>} /> 
       <Route path="/cgpa-calculator" element={<ProtectedRoute><VTUCalculator /></ProtectedRoute>} />
-      {/* Route for teacher to view a specific student's profile */}
+      
       <Route path="/teacher/view-student/:studentId" element={<ProtectedRoute><TeacherViewStudentProfile /></ProtectedRoute>} /> 
       <Route path="*" element={<Navigate to="/login" />} />
     </Routes>

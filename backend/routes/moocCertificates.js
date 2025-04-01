@@ -3,7 +3,7 @@ const router = express.Router();
 const pool = require('../db');
 const authenticateToken = require('../middleware/auth');
 
-// Get all MOOC certificates for a student
+
 router.get('/:studentId', authenticateToken, async (req, res) => {
     try {
         const { studentId } = req.params;
@@ -24,7 +24,7 @@ router.get('/:studentId', authenticateToken, async (req, res) => {
     }
 });
 
-// Add a new MOOC certificate
+
 router.post('/', authenticateToken, async (req, res) => {
     const client = await pool.connect();
     try {
@@ -39,7 +39,7 @@ router.post('/', authenticateToken, async (req, res) => {
             certificate_url
         } = req.body;
 
-        // Validate required fields
+        
         if (!student_id || !semester || !platform || !title || !start_date || 
             !end_date || !hours_per_week || !certificate_url) {
             return res.status(400).json({ 
@@ -48,7 +48,7 @@ router.post('/', authenticateToken, async (req, res) => {
             });
         }
 
-        // Validate data types
+        
         if (typeof hours_per_week !== 'number' || hours_per_week <= 0) {
             return res.status(400).json({ 
                 error: 'Hours per week must be a positive number',
@@ -56,10 +56,10 @@ router.post('/', authenticateToken, async (req, res) => {
             });
         }
 
-        // Start transaction
+        
         await client.query('BEGIN');
 
-        // Get student_profile_id
+        
         const profileResult = await client.query(
             'SELECT profile_id FROM student_profiles WHERE student_id = $1',
             [student_id]
@@ -86,7 +86,7 @@ router.post('/', authenticateToken, async (req, res) => {
             certificate_url
         });
 
-        // Insert certificate
+        
         const result = await client.query(
             `INSERT INTO mooc_certificates (
                 student_profile_id,
@@ -111,7 +111,7 @@ router.post('/', authenticateToken, async (req, res) => {
             ]
         );
 
-        // Commit transaction
+        
         await client.query('COMMIT');
 
         res.status(201).json(result.rows[0]);
@@ -124,7 +124,7 @@ router.post('/', authenticateToken, async (req, res) => {
     }
 });
 
-// Update a MOOC certificate
+
 router.put('/:certificateId', authenticateToken, async (req, res) => {
     try {
         const { certificateId } = req.params;
@@ -172,7 +172,7 @@ router.put('/:certificateId', authenticateToken, async (req, res) => {
     }
 });
 
-// Delete a MOOC certificate
+
 router.delete('/:certificateId', authenticateToken, async (req, res) => {
     try {
         const { certificateId } = req.params;

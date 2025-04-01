@@ -13,10 +13,10 @@ const Announcements = () => {
   ]);
 
   useEffect(() => {
-    // Fetch announcements data from an API or a static file
+    
     const fetchAnnouncements = async () => {
       try {
-        const response = await fetch('/path/to/announcements'); // Update with actual path
+        const response = await fetch('/path/to/announcements'); 
         const data = await response.json();
         setAnnouncements(data.map(announcement => ({
           ...announcement,

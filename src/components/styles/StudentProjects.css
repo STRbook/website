@@ -50,7 +50,7 @@
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  box-sizing: border-box; /* Include padding and border in element's total width and height */
+  box-sizing: border-box; 
 }
 
 .form-field textarea {
@@ -61,10 +61,10 @@
 .form-buttons {
   margin-top: 20px;
   display: flex;
-  gap: 10px; /* Add space between buttons */
+  gap: 10px; 
 }
 
-/* Basic button styling (reuse or adapt from global styles if available) */
+
 .button-primary, .button-secondary, .button-edit, .button-delete {
   padding: 10px 15px;
   border: none;
@@ -139,7 +139,7 @@
 }
 
 .project-card p {
-  flex-grow: 1; /* Make description take available space */
+  flex-grow: 1; 
   margin-bottom: 10px;
   line-height: 1.5;
 }
@@ -147,7 +147,7 @@
 .project-card a {
   color: #007bff;
   text-decoration: none;
-  margin-top: auto; /* Push link and actions to bottom */
+  margin-top: auto; 
 }
 
 .project-card a:hover {

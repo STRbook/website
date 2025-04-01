@@ -15,7 +15,7 @@ async function runMigrations() {
   const client = await pool.connect();
   
   try {
-    // Create migrations table if it doesn't exist
+    
     await client.query(`
       CREATE TABLE IF NOT EXISTS migrations (
         id SERIAL PRIMARY KEY,
@@ -24,18 +24,18 @@ async function runMigrations() {
       );
     `);
 
-    // Get list of migration files
+    
     const migrationFiles = fs.readdirSync(__dirname)
       .filter(file => file.endsWith('.sql'))
       .sort();
 
-    // Get already executed migrations
+    
     const { rows: executedMigrations } = await client.query(
       'SELECT name FROM migrations'
     );
     const executedMigrationNames = executedMigrations.map(row => row.name);
 
-    // Run pending migrations
+    
     for (const file of migrationFiles) {
       if (!executedMigrationNames.includes(file)) {
         console.log(`Running migration: ${file}`);

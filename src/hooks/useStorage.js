@@ -10,14 +10,14 @@ const useStorage = () => {
   const uploadFile = (file) => {
     if (!file) return;
 
-    // Check file size (2MB limit)
-    const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+    
+    const maxSize = 2 * 1024 * 1024; 
     if (file.size > maxSize) {
       setError('File size exceeds 2MB limit');
       return Promise.reject(new Error('File size exceeds 2MB limit'));
     }
 
-    // Check file type
+    
     if (!file.type.startsWith('image/')) {
       setError('Only image files are allowed');
       return Promise.reject(new Error('Only image files are allowed'));

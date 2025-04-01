@@ -14,9 +14,26 @@ const ViewProfile = () => {
   const [profilePicUrl, setProfilePicUrl] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState(null);
-  const { student_id } = useParams();
+  const { student_id: param_student_id } = useParams(); 
   const navigate = useNavigate();
-  const isOwnProfile = !student_id || student_id === localStorage.getItem('student_id');
+  
+  const getLoggedInStudentId = () => {
+    const userString = localStorage.getItem('user');
+    if (userString) {
+      try {
+        const user = JSON.parse(userString);
+        return user?.id?.toString(); // Ensure it's a string for comparison
+      } catch (e) {
+        console.error("Failed to parse user data from localStorage", e);
+        return null;
+      }
+    }
+    return null;
+  };
+
+  const loggedInStudentId = getLoggedInStudentId();
+  const current_student_id = param_student_id || loggedInStudentId; // Use param ID if present, otherwise logged-in user's ID
+  const isOwnProfile = !param_student_id || param_student_id === loggedInStudentId;
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -26,8 +43,16 @@ const ViewProfile = () => {
           navigate('/login');
           return;
         }
+        
+        if (!current_student_id) {
+          console.error("Student ID not found in URL params or localStorage.");
+          setError("Could not determine student profile to fetch.");
+          setLoading(false);
+          
+          return;
+        }
 
-        const response = await fetch(`${API_BASE_URL}/api/student-profile/${student_id || localStorage.getItem('student_id')}`, {
+        const response = await fetch(`${API_BASE_URL}/api/student-profile/${current_student_id}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -67,18 +92,16 @@ const ViewProfile = () => {
     };
 
     fetchProfile();
-  }, [student_id, navigate]);
+  }, [current_student_id, navigate]); // Depend on current_student_id
 
   useEffect(() => {
     if (profile) {
       const profileCopy = JSON.parse(JSON.stringify(profile));
       
-      // Initialize addresses if needed
       if (!profileCopy.addresses) {
         profileCopy.addresses = [];
       }
       
-      // Initialize academic_records if needed
       if (!profileCopy.academic_records) {
         profileCopy.academic_records = [{
           degree: '',
@@ -88,11 +111,9 @@ const ViewProfile = () => {
         }];
       }
       
-      // Find existing addresses
       const temporaryAddressIndex = profileCopy.addresses.findIndex(addr => addr.address_type === 'temporary');
       const permanentAddressIndex = profileCopy.addresses.findIndex(addr => addr.address_type === 'permanent');
       
-      // Initialize addresses if needed
       if (temporaryAddressIndex === -1) {
         profileCopy.addresses.push({
           address_type: 'temporary',
@@ -206,7 +227,6 @@ const ViewProfile = () => {
         }
       }
 
-      console.log('Sending profile update:', editedProfile);  // Debug log
       
       const response = await fetch(`${API_BASE_URL}/api/student-profile/update`, {
         method: 'PUT',
@@ -235,7 +255,7 @@ const ViewProfile = () => {
       setIsEditing(false);
       alert('Profile updated successfully!');
     } catch (err) {
-      console.error('Profile update error:', err);  // Debug log
+      console.error('Profile update error:', err); 
       alert('Failed to update profile: ' + err.message);
     }
   };
@@ -475,7 +495,6 @@ const ViewProfile = () => {
               </table>
             </div>
 
-            {/* Hobbies Section */}
             {profile.hobbies && profile.hobbies.length > 0 && (
               <div className="profile-section">
                 <h3>Hobbies & Interests</h3>

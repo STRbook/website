@@ -1,4 +1,3 @@
-/* src/components/styles/Dashboard.css */
 
 .dashboard-container {
   display: flex;
@@ -113,4 +112,57 @@ button[type="submit"]:hover {
 
 .mooc-certificates-table tbody tr:hover {
   background-color: #ddd;
+}
+
+
+.students-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
+  border-radius: 8px; 
+  overflow: hidden; 
+}
+
+.students-table th,
+.students-table td {
+  border: 1px solid #e0e0e0; 
+  padding: 12px 15px; 
+  text-align: left;
+  vertical-align: middle; 
+}
+
+.students-table th {
+  background-color: #f8f9fa; 
+  color: #333; 
+  font-weight: 600; 
+}
+
+.students-table tbody tr:nth-child(even) {
+  background-color: #f8f9fa; 
+}
+
+.students-table tbody tr:hover {
+  background-color: #e9ecef; 
+}
+
+.students-table td button {
+  padding: 6px 12px;
+  background-color: #007bff; 
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: background-color 0.2s ease; 
+}
+
+.students-table td button:hover {
+  background-color: #0056b3; 
+}
+
+.error-message {
+  color: #dc3545; 
+  margin-top: 10px;
+  font-weight: bold;
 }

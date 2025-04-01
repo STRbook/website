@@ -197,7 +197,7 @@
   margin: 0 0 1rem 0;
 }
 
-/* Apply base styles to both academic and generic data tables */
+
 .academic-table,
 .data-table {
   width: 100%;
@@ -206,7 +206,7 @@
   background: white;
 }
 
-/* Apply cell styles to both */
+
 .academic-table th,
 .academic-table td,
 .data-table th,
@@ -216,7 +216,7 @@
   border: 1px solid #eee;
 }
 
-/* Apply header styles to both */
+
 .academic-table th,
 .data-table th {
   background: #f8f9fa;
@@ -225,14 +225,14 @@
   font-size: 0.9rem;
 }
 
-/* Apply data cell styles to both */
+
 .academic-table td,
 .data-table td {
   color: #333;
-  vertical-align: top; /* Align content to top for potentially multi-line descriptions */
+  vertical-align: top; 
 }
 
-/* Style for links within tables */
+
 .data-table td a {
   color: #007bff;
   text-decoration: none;
@@ -241,7 +241,7 @@
   text-decoration: underline;
 }
 
-/* Style for 'no records' message in tables */
+
 .academic-table .no-records,
 .data-table .no-records {
   text-align: center;
@@ -265,8 +265,7 @@
   border: 1px solid #eee;
 }
 
-/* Remove specific academic table no-records style if covered above */
-/* .academic-table .no-records { ... } */
+
 
 
 .loading {

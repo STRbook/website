@@ -40,7 +40,7 @@ jobs:
         cd backend && npm ci
 
     - name: Run Frontend Linting
-      run: npm run lint || true
+      run: npm run lint
 
     - name: Run Frontend Tests
       run: npm test -- --coverage --watchAll=false
@@ -52,7 +52,7 @@ jobs:
       run: npm run build
 
     - name: Upload Build Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: build
         path: build/
